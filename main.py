@@ -12,7 +12,7 @@ import os
 
 # Create main window
 root = Tk()
-root.geometry('400x400')
+root.geometry('630x700+400+100')
 root.title('PDF page viewer')
 
 
@@ -30,6 +30,11 @@ def openFile():
         print(fileName)
     else:
         print('No file selected')
+        return
+
+    v1 = pdf.ShowPdf()
+    v2 = v1.pdf_view(root, pdf_location=open(fileName, 'r'), width=77, height=100)
+    v2.pack(pady=(0,0))
 
 Button(root, text='open', command=openFile, width=60).pack()
 
