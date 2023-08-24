@@ -1,0 +1,6 @@
+"""
+Main file
+"""
+
+
+print('test')
