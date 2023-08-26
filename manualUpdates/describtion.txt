@@ -1,0 +1,3 @@
+Replace the tkPDFViewer.py file in library:
+C:\Users\Momento\AppData\Local\Programs\Python\Python38\lib
+	\site-packages\tkPDFViewer\tkPDFViewer.py
