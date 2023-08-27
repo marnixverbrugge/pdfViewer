@@ -27,7 +27,8 @@ class ImageFrame:
         self.column = grid.column
         self.name = 'Frame-%s'%str(parameters.frameNumber)
         self.pageName = None
-        self.createFrame((80,60))
+        self.selectHighlight = False
+        self.createFrame((88, 68))
 
         # Update general parameters
         parameters.frameNumber += 1
@@ -50,17 +51,39 @@ class ImageFrame:
         original = Image.open('%s\%s'%(os.getcwd(),pageName))
         resized = original.resize((60, 80),Image.ANTIALIAS)
         img = ImageTk.PhotoImage(resized)
-        label = Label(self.fr, image = img)
-        label.image=img
+        self.label = Label(self.fr, image = img)
+        self.label.image=img
         
-        label.bind("<Button-1>", self.printName)
-        label.grid()
+        self.label.bind("<Button-1>", self.printName)
+        self.label.grid(padx=2, pady=2)
 
         return
     
     
     def printName(self, event):
-        print(self.pageName[12:-4])
+        print(self.name, self.pageName[12:-4])
+        if self.selectHighlight:
+            self.unhighlight()
+        else:
+            self.highlight()
+        return
+
+
+    def highlight(self):
+        """ Highlight frame with red color """
+        self.fr.configure(background='red')
+        self.selectHighlight = True
+        if parameters.frameHighlighted != False:
+            parameters.gridFrames[parameters.frameHighlighted].unhighlight()
+        parameters.frameHighlighted = self.name
+        return
+    
+    
+    def unhighlight(self):
+        """ Unhighlight frame """
+        self.fr.configure(background='#f0f0f0')
+        self.selectHighlight = False
+        parameters.frameHighlighted = False
         return
 
 
@@ -83,6 +106,7 @@ class ImportPDF:
             self.saveImage(pageNumber, pageName)
             fr = ImageFrame()
             fr.assignLabel(pageName)
+            parameters.gridFrames[fr.name] = fr
             grid.updateRowsAndColumns()
 
     def getName(self):
@@ -115,6 +139,8 @@ class Parameters:
     def __init__(self):
         self.pdfNumber = 1
         self.frameNumber = 0
+        self.gridFrames = {}
+        self.frameHighlighted = False
 
 
 ###
