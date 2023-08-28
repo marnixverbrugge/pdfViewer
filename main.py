@@ -44,8 +44,8 @@ class ImageFrame:
         return 
 
 
-    def assignLabel(self, pageName):
-        """ Assign the correct image label to frame """
+    def createLabel(self, pageName):
+        """ Create the initial image label to frame """
         self.pageName = pageName
         # Update frame with page image
         original = Image.open('%s\%s'%(os.getcwd(),pageName))
@@ -54,18 +54,34 @@ class ImageFrame:
         self.label = Label(self.fr, image = img)
         self.label.image=img
         
-        self.label.bind("<Button-1>", self.printName)
+        self.label.bind("<Button-1>", self.onClick)
         self.label.grid(padx=2, pady=2)
 
         return
     
+
+    def updateLabel(self, pageName):
+        """ Update the existing label by the new pageName"""
+        self.pageName = pageName
+        # Update frame with page image
+        original = Image.open('%s\%s'%(os.getcwd(),pageName))
+        resized = original.resize((60, 80),Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(resized)
+        self.label.configure(image=img)
+        self.label.image=img
+        return
     
-    def printName(self, event):
-        print(self.name, self.pageName[12:-4])
-        if self.selectHighlight:
-            self.unhighlight()
+
+    def onClick(self, event):
+        """ Operate when user clicks on pdf page / frame """
+        # Switch positions
+        if parameters.frameHighlighted:
+            self.changePosition()
+
+        # Highlight
         else:
             self.highlight()
+
         return
 
 
@@ -86,6 +102,24 @@ class ImageFrame:
         parameters.frameHighlighted = False
         return
 
+    def changePosition(self):
+        """ Function to switch pdf pages """
+        selectedFrameName = parameters.frameHighlighted
+        selectedPageName = parameters.gridFrames[parameters.frameHighlighted].pageName
+
+        # Update the previous selected frame
+        parameters.gridFrames[selectedFrameName].updateLabel(str(self.pageName))
+        parameters.gridFrames[selectedFrameName].unhighlight()
+
+        # Update self
+        self.updateLabel(str(selectedPageName))
+
+        return
+
+        
+
+        
+
 
 class ImportPDF:
     """main object"""
@@ -105,7 +139,7 @@ class ImportPDF:
             pageName = f"imageFolder\{self.name}_page-{pageNumber+1}.png"
             self.saveImage(pageNumber, pageName)
             fr = ImageFrame()
-            fr.assignLabel(pageName)
+            fr.createLabel(pageName)
             parameters.gridFrames[fr.name] = fr
             grid.updateRowsAndColumns()
 
