@@ -25,7 +25,7 @@ class ImageFrame:
         # General assignment
         self.row = grid.row
         self.column = grid.column
-        self.name = 'Frame-%s'%str(parameters.frameNumber)
+        self.name = parameters.frameNumber
         self.pageName = None
         self.selectHighlight = False
         self.createFrame((88, 68))
@@ -132,6 +132,7 @@ class ImportPDF:
         
         # Update general parameters
         parameters.pdfNumber += 1
+        parameters.pdfNames[self.name] = fileName
 
 
         # Create individual pages
@@ -159,7 +160,7 @@ class Grid:
     """Gird object for frame orientation"""
     
     def __init__(self):
-        self.row = 1
+        self.row = 2
         self.column = 0
 
     def updateRowsAndColumns(self):
@@ -175,6 +176,7 @@ class Parameters:
         self.frameNumber = 0
         self.gridFrames = {}
         self.frameHighlighted = False
+        self.pdfNames = {}
 
 
 ###
@@ -230,9 +232,31 @@ def openFunction():
     
     return
     
+# Save pdf button
+def savePDF():
+    """Function to save the new created pdf"""
+    sortedFrameNumbers = sorted(parameters.gridFrames.keys())
+    
+    print('\nStart pdf save\n')
+    for frameNumber in sortedFrameNumbers:
+        fr = parameters.gridFrames[frameNumber]
+
+        # Get pdf name and number
+        splitName = fr.pageName[12:].split('_')
+        referencePDFName = splitName[0]
+        pageNumber = int(splitName[1][5:-4])
+        pdfName = parameters.pdfNames[referencePDFName]
+        print(pdfName, pageNumber)
+    print('\nEnd pdf save\n')
+    
+    return
 
 # Create open button
 Button(root, text='open', command=openFunction, width=60).grid(row=0, column=0, columnspan=3)
+
+
+# Create save button
+Button(root, text='save', command=savePDF, width=60).grid(row=1, column=0, columnspan=3)
 
 
 ###
