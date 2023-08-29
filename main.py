@@ -5,6 +5,8 @@ Create a tkinter window to show the pages of a pdf document
 
 The pages are stored are .png in the imageFolder (re)created by the script
 
+Comment: incorrect startxref pointer(1) --> possible to solve?
+
 """
 
 from tkinter import *
@@ -13,6 +15,7 @@ import os
 import shutil
 from PIL import ImageTk, Image
 import pypdfium2 as pdfium
+from pypdf import PdfMerger
 
 ###
 ## CLASSES
@@ -69,13 +72,14 @@ class ImageFrame:
         img = ImageTk.PhotoImage(resized)
         self.label.configure(image=img)
         self.label.image=img
+
         return
     
 
     def onClick(self, event):
         """ Operate when user clicks on pdf page / frame """
         # Switch positions
-        if parameters.frameHighlighted:
+        if parameters.frameHighlighted != None:
             self.changePosition()
 
         # Highlight
@@ -89,9 +93,10 @@ class ImageFrame:
         """ Highlight frame with red color """
         self.fr.configure(background='red')
         self.selectHighlight = True
-        if parameters.frameHighlighted != False:
+        if parameters.frameHighlighted != None:
             parameters.gridFrames[parameters.frameHighlighted].unhighlight()
         parameters.frameHighlighted = self.name
+
         return
     
     
@@ -99,7 +104,7 @@ class ImageFrame:
         """ Unhighlight frame """
         self.fr.configure(background='#f0f0f0')
         self.selectHighlight = False
-        parameters.frameHighlighted = False
+        parameters.frameHighlighted = None
         return
 
     def changePosition(self):
@@ -175,7 +180,7 @@ class Parameters:
         self.pdfNumber = 1
         self.frameNumber = 0
         self.gridFrames = {}
-        self.frameHighlighted = False
+        self.frameHighlighted = None
         self.pdfNames = {}
 
 
@@ -209,6 +214,13 @@ def getFileName():
 
     return fileName
 
+def getNewFileName():
+    fileName = filedialog.asksaveasfile(initialfile='New file.pdf',
+                                        defaultextension='.pdf',                                                                                                                      title='select pdf file',
+                                        filetype = (('PDF File', '.pdf'),
+                                                    ('PDF File', '.PDF')))
+    return fileName
+
 
 ###
 ## MAIN
@@ -235,9 +247,10 @@ def openFunction():
 # Save pdf button
 def savePDF():
     """Function to save the new created pdf"""
+    newFileName = getNewFileName()
     sortedFrameNumbers = sorted(parameters.gridFrames.keys())
     
-    print('\nStart pdf save\n')
+    newPDF = PdfMerger()
     for frameNumber in sortedFrameNumbers:
         fr = parameters.gridFrames[frameNumber]
 
@@ -246,8 +259,10 @@ def savePDF():
         referencePDFName = splitName[0]
         pageNumber = int(splitName[1][5:-4])
         pdfName = parameters.pdfNames[referencePDFName]
-        print(pdfName, pageNumber)
-    print('\nEnd pdf save\n')
+        newPDF.append(pdfName, pages=(pageNumber-1, pageNumber))
+
+    newPDF.write(newFileName.name)
+    newPDF.close()
     
     return
 
