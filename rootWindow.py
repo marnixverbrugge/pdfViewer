@@ -1,6 +1,20 @@
-from tkinter import *
-from tkinter import filedialog
+"""
+Module containing the root window
 
+The button operations are imported from operations.py
+
+"""
+
+# General imports
+from tkinter import *
+
+# Custom imports
+import operations as ops
+
+
+###
+## ROOT
+###
 
 # Create main window
 root = Tk()
@@ -27,8 +41,8 @@ menubar = Menu(root)
 
 # File 
 fileMenu = Menu(menubar, tearoff=0)
-fileMenu.add_command(label='Open pdf', command=lambda: updateStatusBar('File - Open PDF'))
-fileMenu.add_command(label='Save as', command=lambda: updateStatusBar('File - Save PDF'))
+fileMenu.add_command(label='Open pdf', command=ops.openPDF)
+fileMenu.add_command(label='Save as', command=ops.saveAs)
 fileMenu.add_separator()
 fileMenu.add_command(label='Quit', command=root.quit)
 menubar.add_cascade(label='File', menu=fileMenu)
@@ -54,9 +68,9 @@ root.config(menu=menubar)
 topFunctionsFrame = Frame(root, height=25)
 topFunctionsFrame.grid(row=0, column=0, columnspan=2, sticky='nswe')
 
-buttonOpen = Button(topFunctionsFrame, text='open', command=lambda: updateStatusBar('Open Button'))
+buttonOpen = Button(topFunctionsFrame, text='open', command=ops.openPDF)
 buttonOpen.grid(row=0, column=0, padx=(3,0))
-buttonSave = Button(topFunctionsFrame, text='save as', command=lambda: updateStatusBar('Save as Button'))
+buttonSave = Button(topFunctionsFrame, text='save as', command=ops.saveAs)
 buttonSave.grid(row=0, column=1, padx=(1,0))
 
 
@@ -126,7 +140,7 @@ buttonFunction2.grid(row=1, column=0, pady=(1,0), sticky='nswe')
 statusBarFrame = Frame(root, height=25)
 statusBarFrame.grid(row=2, column=0, columnspan=2, pady=1, padx=1, sticky='nswe')
 statusBarFrame.grid_columnconfigure(0, weight=1)
-statusLabel = Label(statusBarFrame, text='test status', bd=1, relief='sunken', anchor='w')
+statusLabel = Label(statusBarFrame, text='Welcome', bd=1, relief='sunken', anchor='w')
 statusLabel.grid(row=0, column=0, sticky='nswe')
 
 def updateStatusBar(text):
