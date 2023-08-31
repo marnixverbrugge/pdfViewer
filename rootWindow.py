@@ -7,6 +7,7 @@ The button operations are imported from operations.py
 
 # General imports
 from tkinter import *
+import ctypes
 
 # Custom imports
 import operations as ops
@@ -37,6 +38,38 @@ root.grid_rowconfigure(2, weight=0)
 ###
 # Menu bar
 ###
+def pageSizeMenuClick(item, tabNumber):
+    pageSizeSmall.set(0) 
+    pageSizeMedium.set(0) 
+    pageSizeLarge.set(0) 
+    item.set(1)
+    keepOpen('v', tabNumber)
+    return
+
+def keepOpen(key='', subTab=None):
+    keybd_event = ctypes.windll.user32.keybd_event
+    alt_key = 0x12
+    key_up = 0x0002
+
+    ansi_key = ord(key.upper())
+    #   press alt + key
+    keybd_event(alt_key, 0, 0, 0)
+    keybd_event(ansi_key, 0, 0, 0)
+
+    #   release alt + key
+    keybd_event(ansi_key, 0, key_up, 0)
+    keybd_event(alt_key, 0, key_up, 0)
+
+    if not subTab:
+        keybd_event(40, 0, 0, 0)
+    elif subTab:
+        keybd_event(39, 0, 0, 0)
+        for i in range(subTab-1): 
+            keybd_event(40, 0, 0, 0)
+            keybd_event(40, 0, key_up, 0)    
+    return
+
+
 menubar = Menu(root)
 
 # File 
@@ -49,8 +82,19 @@ menubar.add_cascade(label='File', menu=fileMenu)
 
 # View
 viewMenu = Menu(menubar, tearoff=0)
-viewMenu.add_command(label='Page size', command=lambda: updateStatusBar('View - Page size'))
-viewMenu.add_command(label='Show page details', command=lambda: updateStatusBar('View - Show page details'))
+pageSizeMenu = Menu(viewMenu, tearoff=0)
+viewMenu.add_cascade(label='Page size', menu=pageSizeMenu)
+
+pageSizeSmall = BooleanVar()
+pageSizeMedium = BooleanVar()
+pageSizeLarge = BooleanVar()
+pageSizeMedium.set(1)
+pageSizeMenu.add_checkbutton(label='Small', onvalue=1, offvalue=0, variable=pageSizeSmall, command=lambda: pageSizeMenuClick(pageSizeSmall, 1))
+pageSizeMenu.add_checkbutton(label='Medium', onvalue=1, offvalue=0, variable=pageSizeMedium, command=lambda: pageSizeMenuClick(pageSizeMedium, 2))
+pageSizeMenu.add_checkbutton(label='Large', onvalue=1, offvalue=0, variable=pageSizeLarge, command=lambda: pageSizeMenuClick(pageSizeLarge, 3))
+
+showPageDetails = BooleanVar()
+viewMenu.add_checkbutton(label='Show page details', onvalue=1, offvalue=0, variable=showPageDetails, command=lambda: keepOpen('v'))
 menubar.add_cascade(label='View', menu=viewMenu)
 
 
