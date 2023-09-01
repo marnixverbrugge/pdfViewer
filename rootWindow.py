@@ -136,6 +136,18 @@ buttonSave.grid(row=0, column=1, padx=(1,0))
 # Center frame
 ###
 
+class AutoGrid(Frame):
+    """ Class to auto scale the image frames """
+    def __init__(self, master=None, **kwargs):
+        Frame.__init__(self, master, **kwargs)
+        self.columns = None
+        self.bind('<Configure>', self.regrid)
+
+    def regrid(self, event=None):
+        ops.resizeGrid()
+
+
+
 def dragBarClick(event):
     event.widget.mouseX = event.x
     return
@@ -174,7 +186,7 @@ dragBarFrame.bind("<Button-1>", dragBarClick)
 dragBarFrame.bind("<ButtonRelease-1>", dragBarRelease)
 
 # Image frame
-imageFrame = Frame(centerFrame, bg='white', highlightbackground='black', highlightthickness=1)
+imageFrame = AutoGrid(centerFrame, bg='white', highlightbackground='black', highlightthickness=1)
 imageFrame.grid(row=0, column=2, sticky='nswe')
 
 

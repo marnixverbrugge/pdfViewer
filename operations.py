@@ -76,12 +76,35 @@ def saveImage(pdf, pageNumber, pageName):
 
 def updateRowsAndColumns():
     """ Update parameters row and columns """
-    parameters.column = 0 if parameters.column==2 else parameters.column+1
+    frameWidth = rW.imageFrame.winfo_width()
+    imageWidth = parameters.dictImagesSizes[parameters.imagesSize][1]
+    numberOfColumns = frameWidth // imageWidth
+    parameters.numberOfColumns = numberOfColumns
+
+    parameters.column = 0 if parameters.column==numberOfColumns else parameters.column+1
     parameters.row = parameters.row+1 if parameters.column==0 else parameters.row
 
     return
 
 
+def resizeGrid():
+    """ Resize the existing grid after imageFrame width change"""
+    frameWidth = rW.imageFrame.winfo_width()
+    imageWidth = parameters.dictImagesSizes[parameters.imagesSize][1]
+    numberOfColumns = frameWidth // imageWidth
+    
+    if numberOfColumns == parameters.numberOfColumns: 
+        return
+    else:
+        parameters.numberOfColumns = numberOfColumns
+    
+    slaves = rW.imageFrame.grid_slaves()
+    slaves.reverse()
+    for i, slave in enumerate(slaves):
+        slave.grid_forget()
+        slave.grid(row=i//numberOfColumns, column=i%numberOfColumns)
+    
+    return
 
 
 ###
@@ -148,6 +171,7 @@ def updatePageSize(currentSize='normal'):
     parameters.imagesSize = currentSize
     for fr in parameters.gridFrames.values():
         fr.updateFrameSize()
+    resizeGrid()
     return
 
 

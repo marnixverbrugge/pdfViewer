@@ -38,7 +38,7 @@ class ImageFrame:
         self.fr = Frame(rW.imageFrame, background='white')
         self.fr.configure(height=h, width=w)
         self.fr.grid_propagate(0)
-        self.fr.grid(row=self.row, column=self.column, pady=20)
+        self.fr.grid(row=self.row, column=self.column, padx=(10,0), pady=20)
         
         return 
 

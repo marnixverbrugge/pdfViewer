@@ -3,8 +3,9 @@ frameNumber = 0
 gridFrames = {}
 frameHighlighted = None
 pdfNames = {}
-row = 2
+row = 0
 column = 0
+numberOfColumns = 1
 imagesSize = 'medium'
 showPageDetails = False
 
