@@ -141,3 +141,20 @@ def saveAs():
     newPDF.close()
     
     return
+
+# Page size
+def updatePageSize(currentSize='normal'):
+    """Function to update the page size"""
+    parameters.imagesSize = currentSize
+    for fr in parameters.gridFrames.values():
+        fr.updateFrameSize()
+    return
+
+
+# Page details
+def updatePageDetails(showPageDetails):
+    """Function to update the page size"""
+    parameters.showPageDetails = showPageDetails
+    for fr in parameters.gridFrames.values():
+        fr.updatePageDetails()
+    return

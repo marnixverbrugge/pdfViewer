@@ -25,16 +25,18 @@ class ImageFrame:
         self.name = parameters.frameNumber
         self.pageName = None
         self.selectHighlight = False
-        self.createFrame((88, 68))
+        self.createFrame()
 
         # Update general parameters
         parameters.frameNumber += 1
     
 
-    def createFrame(self, size):
+    def createFrame(self):
         """ Create tkinter frame """
+        h, w = parameters.dictImagesSizes[parameters.imagesSize]
+        if parameters.showPageDetails: h+=25
         self.fr = Frame(rW.imageFrame, background='white')
-        self.fr.configure(height=size[0],width=size[1])
+        self.fr.configure(height=h, width=w)
         self.fr.grid_propagate(0)
         self.fr.grid(row=self.row, column=self.column, pady=20)
         
@@ -46,7 +48,8 @@ class ImageFrame:
         self.pageName = pageName
         # Update frame with page image
         original = Image.open('%s\%s'%(os.getcwd(),pageName))
-        resized = original.resize((60, 80),Image.ANTIALIAS)
+        h, w = parameters.dictImagesSizes[parameters.imagesSize]
+        resized = original.resize((w-8, h-8),Image.ANTIALIAS)
         img = ImageTk.PhotoImage(resized)
         self.label = Label(self.fr, image = img)
         self.label.image=img
@@ -54,19 +57,44 @@ class ImageFrame:
         self.label.bind("<Button-1>", self.onClick)
         self.label.grid(padx=2, pady=2)
 
+        # Check for details label
+        if parameters.showPageDetails: self.addDetailLabel()
+
         return
-    
+
+    def addDetailLabel(self):
+        splitName = self.pageName[16:].split('_')
+        referencePDFName = splitName[0]
+        pageNumber = int(splitName[1][5:-4])
+        self.detailLabel = Label(self.fr, text='%s_p %s'%(referencePDFName, pageNumber), bg='white').grid(row=1,padx=2, pady=2)
+        return
+
+    def updatePageDetails(self):
+        self.updateFrameSize()
+        if parameters.showPageDetails: self.addDetailLabel()
+        return
+
+    def updateFrameSize(self):
+        """ Update frame size """
+        self.size = parameters.imagesSize
+        h, w = parameters.dictImagesSizes[parameters.imagesSize]
+        if parameters.showPageDetails: h+=25
+        self.fr.configure(height=h, width=w)
+        self.updateLabel(self.pageName)
+        
+        return
 
     def updateLabel(self, pageName):
         """ Update the existing label by the new pageName"""
         self.pageName = pageName
         # Update frame with page image
         original = Image.open('%s\%s'%(os.getcwd(),pageName))
-        resized = original.resize((60, 80),Image.ANTIALIAS)
+        h, w = parameters.dictImagesSizes[parameters.imagesSize]
+        resized = original.resize((w-8, h-8),Image.ANTIALIAS)
         img = ImageTk.PhotoImage(resized)
         self.label.configure(image=img)
         self.label.image=img
-
+        if parameters.showPageDetails: self.addDetailLabel()
         return
     
 

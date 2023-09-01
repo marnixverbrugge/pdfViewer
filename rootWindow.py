@@ -39,11 +39,25 @@ root.grid_rowconfigure(2, weight=0)
 # Menu bar
 ###
 def pageSizeMenuClick(item, tabNumber):
+    # Update GUI menu
     pageSizeSmall.set(0) 
     pageSizeMedium.set(0) 
     pageSizeLarge.set(0) 
     item.set(1)
     keepOpen('v', tabNumber)
+
+    # Operate size function
+    sizes = 'small', 'medium', 'large'
+    ops.updatePageSize(sizes[tabNumber-1])
+
+    return
+
+def showPageDetailsClick():
+    # Update GUI menu
+    keepOpen('v')
+    # Operate detail function
+    details = showPageDetails.get()
+    ops.updatePageDetails(details)
     return
 
 def keepOpen(key='', subTab=None):
@@ -94,7 +108,7 @@ pageSizeMenu.add_checkbutton(label='Medium', onvalue=1, offvalue=0, variable=pag
 pageSizeMenu.add_checkbutton(label='Large', onvalue=1, offvalue=0, variable=pageSizeLarge, command=lambda: pageSizeMenuClick(pageSizeLarge, 3))
 
 showPageDetails = BooleanVar()
-viewMenu.add_checkbutton(label='Show page details', onvalue=1, offvalue=0, variable=showPageDetails, command=lambda: keepOpen('v'))
+viewMenu.add_checkbutton(label='Show page details', onvalue=1, offvalue=0, variable=showPageDetails, command=showPageDetailsClick)
 menubar.add_cascade(label='View', menu=viewMenu)
 
 
