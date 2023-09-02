@@ -80,8 +80,8 @@ def updateRowsAndColumns():
     imageWidth = parameters.dictImagesSizes[parameters.imagesSize][1]
     numberOfColumns = frameWidth // imageWidth
     parameters.numberOfColumns = numberOfColumns
-
-    parameters.column = 0 if parameters.column==numberOfColumns else parameters.column+1
+    
+    parameters.column = 0 if parameters.column==numberOfColumns-1 else parameters.column+1
     parameters.row = parameters.row+1 if parameters.column==0 else parameters.row
 
     return
@@ -93,7 +93,7 @@ def resizeGrid():
     imageWidth = parameters.dictImagesSizes[parameters.imagesSize][1]
     numberOfColumns = frameWidth // imageWidth
     
-    if numberOfColumns == parameters.numberOfColumns: 
+    if numberOfColumns == parameters.numberOfColumns or numberOfColumns==0: 
         return
     else:
         parameters.numberOfColumns = numberOfColumns
