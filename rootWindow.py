@@ -222,4 +222,5 @@ def updateStatusBar(text):
 ###
 ## RUN
 ###
+ops.createImageFolder()
 root.mainloop()
