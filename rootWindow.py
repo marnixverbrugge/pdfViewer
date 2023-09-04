@@ -215,6 +215,7 @@ statusLabel.grid(row=0, column=0, sticky='nswe')
 
 def updateStatusBar(text):
     statusLabel.configure(text=text)
+    statusLabel.update()
     return
 
 

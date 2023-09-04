@@ -44,7 +44,7 @@ def getOpenFileName():
                                                       ('ALL file', '.txt')))
 
     # Update status bar
-    if fileName: rW.updateStatusBar('Imported -- %s'%fileName.split('/')[-1])
+    if fileName: rW.updateStatusBar('Open file...')
 
     return fileName
 
@@ -140,6 +140,8 @@ def openPDF():
         parameters.gridFrames[fr.name] = fr
         updateRowsAndColumns()
     
+    rW.updateStatusBar('Imported -- %s'%fileName.split('/')[-1])
+
     return
 
     
