@@ -63,6 +63,7 @@ class ImageFrame:
         return
 
     def addDetailLabel(self):
+        """ Add pdf and page number to the frame """
         splitName = self.pageName[16:].split('_')
         referencePDFName = splitName[0]
         pageNumber = int(splitName[1][5:-4])
@@ -70,6 +71,7 @@ class ImageFrame:
         return
 
     def updatePageDetails(self):
+        """ Update frame and label """
         self.updateFrameSize()
         if parameters.showPageDetails: self.addDetailLabel()
         return
@@ -100,13 +102,51 @@ class ImageFrame:
 
     def onClick(self, event):
         """ Operate when user clicks on pdf page / frame """
-        # Switch positions
-        if parameters.frameHighlighted != None:
-            self.changePosition()
 
-        # Highlight
+        # Check if selection is required
+        if parameters.currentAction == None: return
+
+        # Check if selection process is done
+        print('action')
+        if parameters.selectionDone == False:
+            if parameters.shiftPressed and self.name not in parameters.currentSelection:
+                parameters.currentSelection.add(self.name)
+                self.highlight()
+            
+            elif parameters.shiftPressed and self.name in parameters.currentSelection:
+                parameters.currentSelection.remove(self.name)
+                self.unhighlight()
+
+            elif parameters.shiftPressed == False and self.name in parameters.currentSelection:
+                self.unhighlightAll()
+                parameters.currentSelection = set([])
+
+            else:
+                self.unhighlightAll()
+                parameters.currentSelection = set([self.name])
+                self.highlight()
+            
+
+        # Go to function after selection
         else:
-            self.highlight()
+            if parameters.currentAction == 'swap':
+                rW.updateStatusBar('Swap finished')
+            if parameters.currentAction == 'insert':
+                rW.updateStatusBar('Selected pages are inserted at new location')
+
+            self.unhighlightAll()
+            parameters.currentAction = None
+            parameters.currentSelection = set([])
+            parameters.selectionDone = False
+
+
+        # # Switch positions
+        # if parameters.frameHighlighted != None:
+        #     self.changePosition()
+
+        # # Highlight
+        # else:
+        #     self.highlight()
 
         return
 
@@ -115,8 +155,6 @@ class ImageFrame:
         """ Highlight frame with red color """
         self.fr.configure(background='red')
         self.selectHighlight = True
-        if parameters.frameHighlighted != None:
-            parameters.gridFrames[parameters.frameHighlighted].unhighlight()
         parameters.frameHighlighted = self.name
 
         return
@@ -128,6 +166,13 @@ class ImageFrame:
         self.selectHighlight = False
         parameters.frameHighlighted = None
         return
+
+    def unhighlightAll(self):
+        """ Unhighlight all frames """
+        for fr in parameters.currentSelection:
+            parameters.gridFrames[fr].unhighlight()
+        return
+
 
     def changePosition(self):
         """ Function to switch pdf pages """

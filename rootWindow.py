@@ -11,7 +11,7 @@ import ctypes
 
 # Custom imports
 import operations as ops
-
+import parameters
 
 ###
 ## ROOT
@@ -193,15 +193,34 @@ imageFrame.grid(row=0, column=2, sticky='nswe')
 ###
 # Left functions
 ###
+
+def swapFunction():
+    parameters.currentAction = 'swap'
+    updateStatusBar('Select pages to swap - press Enter to continue')
+    return
+
+def deleteImage():
+    parameters.currentAction = 'delete'
+    updateStatusBar('Select pages - press Enter to delete')
+    return
+
+
+def inputFunction():
+    parameters.currentAction = 'insert'
+    updateStatusBar('Insert function')
+    return
+
+
 leftFunctionsFrame = Frame(root, width=25)
 leftFunctionsFrame.grid(row=1, column=1, sticky='nswe')
 leftFunctionsFrame.grid_columnconfigure(0, weight=0)
 
-
-buttonFunction1 = Button(leftFunctionsFrame, text='1', width=2, command=lambda: updateStatusBar('Function 1 Button'))
+buttonFunction1 = Button(leftFunctionsFrame, text='1', width=2, command=swapFunction)
 buttonFunction1.grid(row=0, column=0, pady=(1,0), sticky='nswe')
-buttonFunction2 = Button(leftFunctionsFrame, text='2', width=2, command=lambda: updateStatusBar('Function 2 Button'))
+buttonFunction2 = Button(leftFunctionsFrame, text='2', width=2, command=inputFunction)
 buttonFunction2.grid(row=1, column=0, pady=(1,0), sticky='nswe')
+buttonFunction3 = Button(leftFunctionsFrame, text='D', width=2, command=deleteImage)
+buttonFunction3.grid(row=2, column=0, pady=(1,0), sticky='nswe')
 
 
 ###
@@ -217,6 +236,49 @@ def updateStatusBar(text):
     statusLabel.configure(text=text)
     statusLabel.update()
     return
+
+
+###
+## KEYS
+###
+
+def keyPressed(keyCode):
+    """Function to update the parameters based on key input"""
+    # Left shift
+    if keyCode == 16: 
+        parameters.shiftPressed = True
+    return
+
+def keyRelease(keyCode):
+    """Function to update the parameters based on key input"""
+    # print(keyCode)
+    # Left shift
+    if keyCode == 16: parameters.shiftPressed = False
+    
+    # ESC - Unhighlight current selection
+    elif keyCode == 27:
+        unhighlightAll()
+        parameters.currentAction = None
+        parameters.currentSelection = set([])
+        
+
+    # Enter - Confirm selection
+    elif keyCode == 13 and parameters.currentAction!=None:
+        parameters.selectionDone = True
+        unhighlightAll()
+        updateStatusBar('Select page to finish current action')
+
+    return
+
+
+def unhighlightAll():
+    """ Unhighlight all selected frames """
+    for fr in parameters.currentSelection:
+        parameters.gridFrames[fr].unhighlight()
+    return
+
+root.bind("<KeyPress>", lambda e: keyPressed(e.keycode))
+root.bind("<KeyRelease>", lambda e: keyRelease(e.keycode))
 
 
 

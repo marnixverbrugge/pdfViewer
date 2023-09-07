@@ -184,3 +184,12 @@ def updatePageDetails(showPageDetails):
     for fr in parameters.gridFrames.values():
         fr.updatePageDetails()
     return
+
+
+
+
+###
+## PAGE OPERATIONS
+###
+
+# def swapPages():
