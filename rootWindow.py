@@ -196,7 +196,7 @@ imageFrame.grid(row=0, column=2, sticky='nswe')
 
 def swapFunction():
     parameters.currentAction = 'swap'
-    updateStatusBar('Select pages to swap - press Enter to continue')
+    updateStatusBar('Select page to swap')
     return
 
 def deleteImage():

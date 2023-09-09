@@ -106,6 +106,11 @@ class ImageFrame:
         # Check if selection is required
         if parameters.currentAction == None: return
 
+        # Swap function
+        if parameters.currentAction == 'swap':
+            self.swapPages()
+            return
+
         # Check if selection process is done
         print('action')
         if parameters.selectionDone == False:
@@ -140,25 +145,19 @@ class ImageFrame:
             parameters.selectionDone = False
 
 
-        # # Switch positions
-        # if parameters.frameHighlighted != None:
-        #     self.changePosition()
 
-        # # Highlight
-        # else:
-        #     self.highlight()
 
         return
 
 
-    def highlight(self):
+    def highlight(self, color='red'):
         """ Highlight frame with red color """
-        self.fr.configure(background='red')
+        self.fr.configure(background=color)
         self.selectHighlight = True
         parameters.frameHighlighted = self.name
 
         return
-    
+  
     
     def unhighlight(self):
         """ Unhighlight frame """
@@ -173,6 +172,17 @@ class ImageFrame:
             parameters.gridFrames[fr].unhighlight()
         return
 
+
+    def swapPages(self):
+        """ Swap pages function active """
+        # Switch positions
+        if parameters.frameHighlighted != None:
+            self.changePosition()
+
+        # Highlight
+        else:
+            self.highlight()
+        return
 
     def changePosition(self):
         """ Function to switch pdf pages """
