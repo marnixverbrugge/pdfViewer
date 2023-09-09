@@ -192,4 +192,32 @@ def updatePageDetails(showPageDetails):
 ## PAGE OPERATIONS
 ###
 
-# def swapPages():
+def insertPages():
+    """ Function to change the page order"""
+    currentPageOrder = [fr.pageName for fr in parameters.gridFrames.values()]
+    currentSelection = sorted(list(parameters.currentSelection))
+    updatedOrder = [i for i in range(len(parameters.gridFrames.keys())) if i not in currentSelection]
+
+    # Get index second page
+    insert = parameters.secondPageSelection
+    if updatedOrder[0] > insert:
+        indexNumber = 0
+    elif updatedOrder[-1]<insert:
+        indexNumber = len(updatedOrder)
+    else:
+        for i, n  in enumerate(updatedOrder):
+            if n == insert:
+                indexNumber = i
+            elif i>0 and updatedOrder[i-1]<insert and n>insert:
+                indexNumber = i
+    
+    # Update order
+    for i in reversed(currentSelection):
+        updatedOrder.insert(indexNumber,i)
+
+    # Update all pages
+    for i, n in enumerate(updatedOrder):
+        parameters.gridFrames[i].updateLabel(currentPageOrder[n])
+    
+    return
+

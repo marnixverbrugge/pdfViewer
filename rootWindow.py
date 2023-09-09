@@ -260,13 +260,23 @@ def keyRelease(keyCode):
         unhighlightAll()
         parameters.currentAction = None
         parameters.currentSelection = set([])
+        parameters.selectionDone = False
+        parameters.secondPageSelection == None
+        updateStatusBar('No function activated')
         
 
     # Enter - Confirm selection
-    elif keyCode == 13 and parameters.currentAction!=None:
+    elif keyCode == 13 and parameters.currentAction!=None and parameters.currentAction != 'swap':
         parameters.selectionDone = True
-        unhighlightAll()
-        updateStatusBar('Select page to finish current action')
+        if parameters.currentAction == 'insert' and parameters.secondPageSelection==None: 
+            updateStatusBar('Select page to insert red pages in front')
+        elif parameters.currentAction == 'insert'and parameters.secondPageSelection!=None:
+            ops.insertPages()
+            updateStatusBar('Pages are inserted')
+            unhighlightAll()
+            parameters.currentSelection = set([])
+            parameters.secondPageSelection = None
+            parameters.selectionDone = False
 
     return
 
@@ -275,6 +285,9 @@ def unhighlightAll():
     """ Unhighlight all selected frames """
     for fr in parameters.currentSelection:
         parameters.gridFrames[fr].unhighlight()
+    
+    if parameters.secondPageSelection != None:
+        parameters.gridFrames[parameters.secondPageSelection].unhighlight()
     return
 
 root.bind("<KeyPress>", lambda e: keyPressed(e.keycode))

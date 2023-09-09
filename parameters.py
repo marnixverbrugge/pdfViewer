@@ -19,3 +19,4 @@ currentAction = None
 currentSelection = set([])
 shiftPressed = False
 selectionDone = False
+secondPageSelection = None

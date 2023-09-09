@@ -111,26 +111,11 @@ class ImageFrame:
             self.swapPages()
             return
 
-        # Check if selection process is done
-        print('action')
-        if parameters.selectionDone == False:
-            if parameters.shiftPressed and self.name not in parameters.currentSelection:
-                parameters.currentSelection.add(self.name)
-                self.highlight()
-            
-            elif parameters.shiftPressed and self.name in parameters.currentSelection:
-                parameters.currentSelection.remove(self.name)
-                self.unhighlight()
-
-            elif parameters.shiftPressed == False and self.name in parameters.currentSelection:
-                self.unhighlightAll()
-                parameters.currentSelection = set([])
-
-            else:
-                self.unhighlightAll()
-                parameters.currentSelection = set([self.name])
-                self.highlight()
-            
+        # Insert function
+        elif parameters.currentAction == 'insert':
+            self.insertPages()
+            return
+           
 
         # Go to function after selection
         else:
@@ -139,13 +124,10 @@ class ImageFrame:
             if parameters.currentAction == 'insert':
                 rW.updateStatusBar('Selected pages are inserted at new location')
 
-            self.unhighlightAll()
+            # self.unhighlightAll()
             parameters.currentAction = None
             parameters.currentSelection = set([])
             parameters.selectionDone = False
-
-
-
 
         return
 
@@ -170,6 +152,7 @@ class ImageFrame:
         """ Unhighlight all frames """
         for fr in parameters.currentSelection:
             parameters.gridFrames[fr].unhighlight()
+        
         return
 
 
@@ -198,4 +181,57 @@ class ImageFrame:
 
         return
 
+
+    def insertPages(self):
+        """ Function to insert selected pages to new position """
+        # Check if selection process is done
+        if parameters.selectionDone == False: 
+            self.multiSelect()
         
+        else:
+            # Select page to know insert location in green
+            if parameters.secondPageSelection == None:
+                parameters.secondPageSelection = self.name
+            
+            # Re-select insert page location
+            else:
+                if parameters.secondPageSelection in parameters.currentSelection:
+                    parameters.gridFrames[parameters.secondPageSelection].highlight()
+                    parameters.secondPageSelection = self.name
+                else:
+                    parameters.gridFrames[parameters.secondPageSelection].unhighlight()
+                    parameters.secondPageSelection = self.name
+            self.highlight('green')
+
+        return
+        
+
+    def multiSelect(self):
+        """ Function to select multiple pages """
+        if parameters.shiftPressed and self.name not in parameters.currentSelection:
+            parameters.currentSelection.add(self.name)
+            self.highlight()
+        
+        elif parameters.shiftPressed and self.name in parameters.currentSelection:
+            parameters.currentSelection.remove(self.name)
+            self.unhighlight()
+
+        elif parameters.shiftPressed == False and self.name in parameters.currentSelection:
+            self.unhighlightAll()
+            parameters.currentSelection = set([])
+
+        else:
+            self.unhighlightAll()
+            parameters.currentSelection = set([self.name])
+            self.highlight()
+        return
+
+
+    # def finishSelectionProcess(self, msg):
+    #     """ Function to clear parameters after the selection process is finished """
+    #     rW.updateStatusBar(msg)
+    #     # self.unhighlightAll()
+    #     parameters.currentAction = None
+    #     parameters.currentSelection = set([])
+    #     parameters.selectionDone = False
+    #     return
