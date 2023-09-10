@@ -195,20 +195,33 @@ imageFrame.grid(row=0, column=2, sticky='nswe')
 ###
 
 def swapFunction():
+    highlightButton(buttonFunction1)
     parameters.currentAction = 'swap'
     updateStatusBar('Select page to swap')
     return
 
-def deleteImage():
+def deleteFunction():
+    highlightButton(buttonFunction3)
     parameters.currentAction = 'delete'
     updateStatusBar('Select pages - press Enter to delete')
     return
 
-def inputFunction():
+def insertFunction():
+    highlightButton(buttonFunction2)
     parameters.currentAction = 'insert'
-    updateStatusBar('Insert function')
+    updateStatusBar('Select pages to insert - press Enter to continue')
     return
 
+def highlightButton(button):
+    unhighlightButtonAll()
+    button.configure(relief='sunken')
+    return
+
+def unhighlightButtonAll():
+    buttonFunction1.configure(relief='raised')
+    buttonFunction2.configure(relief='raised')
+    buttonFunction3.configure(relief='raised')
+    return
 
 leftFunctionsFrame = Frame(root, width=25)
 leftFunctionsFrame.grid(row=1, column=1, sticky='nswe')
@@ -216,9 +229,9 @@ leftFunctionsFrame.grid_columnconfigure(0, weight=0)
 
 buttonFunction1 = Button(leftFunctionsFrame, text='1', width=2, command=swapFunction)
 buttonFunction1.grid(row=0, column=0, pady=(1,0), sticky='nswe')
-buttonFunction2 = Button(leftFunctionsFrame, text='2', width=2, command=inputFunction)
+buttonFunction2 = Button(leftFunctionsFrame, text='2', width=2, command=insertFunction)
 buttonFunction2.grid(row=1, column=0, pady=(1,0), sticky='nswe')
-buttonFunction3 = Button(leftFunctionsFrame, text='D', width=2, command=deleteImage)
+buttonFunction3 = Button(leftFunctionsFrame, text='D', width=2, command=deleteFunction)
 buttonFunction3.grid(row=2, column=0, pady=(1,0), sticky='nswe')
 
 
@@ -257,6 +270,7 @@ def keyRelease(keyCode):
     # ESC - Unhighlight current selection
     elif keyCode == 27:
         unhighlightAll()
+        unhighlightButtonAll()
         parameters.currentAction = None
         parameters.currentSelection = set([])
         parameters.selectionDone = False
@@ -284,8 +298,21 @@ def keyRelease(keyCode):
             parameters.currentSelection = set([])
             parameters.selectionDone = False
 
+    # Shortcut to functions
+    elif keyCode == 49: # 1 key
+        swapFunction()
+    elif keyCode == 50: # 2 key
+        insertFunction()
+    elif keyCode == 51: # 3 key
+        deleteFunction()
+    elif keyCode == 79: # o key
+        ops.openPDF()
+    elif keyCode == 83: # s key
+        ops.saveAs()
+
+
     # Print programm information
-    elif keyCode == 73: 
+    elif keyCode == 73: # i key
         print('Gridframes: ', parameters.gridFrames.keys())
         print('CurrentSelection: ', parameters.currentSelection)
         print('Num columns: ', parameters.numberOfColumns)
