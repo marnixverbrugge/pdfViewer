@@ -136,6 +136,44 @@ buttonSave.grid(row=0, column=1, padx=(1,0))
 # Center frame
 ###
 
+class VerticalScrolledFrame(Frame):
+    def __init__(self, parent, *args, **kw):
+        Frame.__init__(self, parent, *args, **kw)
+
+        # Create a canvas object and a vertical scrollbar for scrolling it.
+        vscrollbar = Scrollbar(self, orient=VERTICAL)
+        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
+        canvas = Canvas(self, highlightbackground='black', highlightthickness=1, background='white',
+                           yscrollcommand=vscrollbar.set)
+        canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
+        vscrollbar.config(command=canvas.yview)
+
+        # Reset the view
+        canvas.xview_moveto(0)
+        canvas.yview_moveto(0)
+
+        # Create a frame inside the canvas which will be scrolled with it.
+        self.interior = interior = AutoGrid(canvas, bg='white')
+        interior_id = canvas.create_window(0, 0, window=interior, anchor=NW)
+
+
+        # Track changes to the canvas and frame width and sync them,
+        # also updating the scrollbar.
+        def _configure_interior(event):
+            # Update the scrollbars to match the size of the inner frame.
+            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+            canvas.config(scrollregion="0 0 %s %s" % size)
+            interior.regrid(None)
+        interior.bind('<Configure>', _configure_interior)
+
+        def _configure_canvas(event):
+            if interior.winfo_reqwidth() != canvas.winfo_width():
+                # Update the inner frame's width to fill the canvas.
+                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+            interior.regrid(None)    
+        canvas.bind('<Configure>', _configure_canvas)
+
+
 class AutoGrid(Frame):
     """ Class to auto scale the image frames """
     def __init__(self, master=None, **kwargs):
@@ -145,6 +183,7 @@ class AutoGrid(Frame):
 
     def regrid(self, event):
         ops.resizeGrid()
+        return
 
 
 
@@ -186,8 +225,9 @@ dragBarFrame.bind("<Button-1>", dragBarClick)
 dragBarFrame.bind("<ButtonRelease-1>", dragBarRelease)
 
 # Image frame
-imageFrame = AutoGrid(centerFrame, bg='white', highlightbackground='black', highlightthickness=1)
-imageFrame.grid(row=0, column=2, sticky='nswe')
+imageCanvas = VerticalScrolledFrame(centerFrame)
+imageCanvas.grid(row=0, column=2, sticky='nswe')
+imageFrame = imageCanvas.interior
 
 
 ###
@@ -286,7 +326,7 @@ def keyRelease(keyCode):
                 updateStatusBar('Select page to insert red pages in front')
             elif parameters.currentAction == 'insert'and parameters.secondPageSelection!=None:
                 ops.insertPages()
-                updateStatusBar('Pages are inserted')
+                updateStatusBar('Pages are inserted - Select new pages to insert - Press enter to continue or esc to stop')
                 unhighlightAll()
                 parameters.currentSelection = set([])
                 parameters.secondPageSelection = None
@@ -294,7 +334,7 @@ def keyRelease(keyCode):
 
         if parameters.currentAction == 'delete':
             ops.deletePages()
-            updateStatusBar('Pages are deleted')
+            updateStatusBar('Pages are deleted - Select new pages to delete - Press enter to continue or esc to stop')
             parameters.currentSelection = set([])
             parameters.selectionDone = False
 
