@@ -109,25 +109,14 @@ class ImageFrame:
         # Swap function
         if parameters.currentAction == 'swap':
             self.swapPages()
-            return
 
         # Insert function
         elif parameters.currentAction == 'insert':
             self.insertPages()
-            return
            
-
-        # Go to function after selection
-        else:
-            if parameters.currentAction == 'swap':
-                rW.updateStatusBar('Swap finished')
-            if parameters.currentAction == 'insert':
-                rW.updateStatusBar('Selected pages are inserted at new location')
-
-            # self.unhighlightAll()
-            parameters.currentAction = None
-            parameters.currentSelection = set([])
-            parameters.selectionDone = False
+        # Delete function
+        elif parameters.currentAction == 'delete':
+            self.deletePages()
 
         return
 
@@ -225,6 +214,19 @@ class ImageFrame:
             parameters.currentSelection = set([self.name])
             self.highlight()
         return
+
+
+    def deletePages(self):
+        """ Delete the selected pages """
+        self.multiSelect()
+
+    def deleteSelf(self):
+        """ Remove the frame from grid """
+        for widgets in self.fr.winfo_children():
+            widgets.destroy()
+        self.fr.destroy()
+        return
+        
 
 
     # def finishSelectionProcess(self, msg):

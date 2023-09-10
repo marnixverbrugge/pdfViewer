@@ -143,7 +143,7 @@ class AutoGrid(Frame):
         self.columns = None
         self.bind('<Configure>', self.regrid)
 
-    def regrid(self, event=None):
+    def regrid(self, event):
         ops.resizeGrid()
 
 
@@ -191,7 +191,7 @@ imageFrame.grid(row=0, column=2, sticky='nswe')
 
 
 ###
-# Left functions
+# Right functions
 ###
 
 def swapFunction():
@@ -203,7 +203,6 @@ def deleteImage():
     parameters.currentAction = 'delete'
     updateStatusBar('Select pages - press Enter to delete')
     return
-
 
 def inputFunction():
     parameters.currentAction = 'insert'
@@ -266,18 +265,31 @@ def keyRelease(keyCode):
         
 
     # Enter - Confirm selection
-    elif keyCode == 13 and parameters.currentAction!=None and parameters.currentAction != 'swap':
-        parameters.selectionDone = True
-        if parameters.currentAction == 'insert' and parameters.secondPageSelection==None: 
-            updateStatusBar('Select page to insert red pages in front')
-        elif parameters.currentAction == 'insert'and parameters.secondPageSelection!=None:
-            ops.insertPages()
-            updateStatusBar('Pages are inserted')
-            unhighlightAll()
+    elif keyCode == 13:
+        if parameters.currentAction == 'insert':
+            parameters.selectionDone = True
+            if parameters.currentAction == 'insert' and parameters.secondPageSelection==None: 
+                updateStatusBar('Select page to insert red pages in front')
+            elif parameters.currentAction == 'insert'and parameters.secondPageSelection!=None:
+                ops.insertPages()
+                updateStatusBar('Pages are inserted')
+                unhighlightAll()
+                parameters.currentSelection = set([])
+                parameters.secondPageSelection = None
+                parameters.selectionDone = False
+
+        if parameters.currentAction == 'delete':
+            ops.deletePages()
+            updateStatusBar('Pages are deleted')
             parameters.currentSelection = set([])
-            parameters.secondPageSelection = None
             parameters.selectionDone = False
 
+    # Print programm information
+    elif keyCode == 73: 
+        print('Gridframes: ', parameters.gridFrames.keys())
+        print('CurrentSelection: ', parameters.currentSelection)
+        print('Num columns: ', parameters.numberOfColumns)
+        print('row, column: ', parameters.row, parameters.column)
     return
 
 
@@ -290,9 +302,14 @@ def unhighlightAll():
         parameters.gridFrames[parameters.secondPageSelection].unhighlight()
     return
 
+def enterMouse(event):
+    """ Link mouse button as enter key """
+    keyRelease(13)
+    return
+
 root.bind("<KeyPress>", lambda e: keyPressed(e.keycode))
 root.bind("<KeyRelease>", lambda e: keyRelease(e.keycode))
-
+root.bind("<Button-2>", enterMouse)
 
 
 ###

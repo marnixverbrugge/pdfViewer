@@ -87,22 +87,25 @@ def updateRowsAndColumns():
     return
 
 
-def resizeGrid():
+def resizeGrid(skipColumnCheck=False):
     """ Resize the existing grid after imageFrame width change"""
     frameWidth = rW.imageFrame.winfo_width()
     imageWidth = parameters.dictImagesSizes[parameters.imagesSize][1]
     numberOfColumns = frameWidth // imageWidth
     
-    if numberOfColumns == parameters.numberOfColumns or numberOfColumns==0: 
-        return
-    else:
-        parameters.numberOfColumns = numberOfColumns
+    if not skipColumnCheck:
+        if numberOfColumns == parameters.numberOfColumns or numberOfColumns==0: 
+            return
+
+    parameters.numberOfColumns = numberOfColumns
     
     slaves = rW.imageFrame.grid_slaves()
     slaves.reverse()
     for i, slave in enumerate(slaves):
         slave.grid_forget()
-        slave.grid(row=i//numberOfColumns, column=i%numberOfColumns)
+        row = i//numberOfColumns
+        column = i%numberOfColumns
+        slave.grid(row=row, column=column)
     
     return
 
@@ -113,6 +116,9 @@ def resizeGrid():
 
 def openPDF():
     """Main function to open a pdf and show the pages as images in individual frames"""
+    # Interupt any active functions
+    rW.keyRelease(27)
+    
     # UGLY WAY TO IMPORT FRAME INSTANCE
     import frameInstance
     
@@ -140,6 +146,7 @@ def openPDF():
         parameters.gridFrames[fr.name] = fr
         updateRowsAndColumns()
     
+    resizeGrid(True)
     rW.updateStatusBar('Imported -- %s'%fileName.split('/')[-1])
 
     return
@@ -221,3 +228,29 @@ def insertPages():
     
     return
 
+def deletePages():
+    """ Function to delete the selected pages """
+    numberOfDeletes = len(parameters.currentSelection)
+    currentPageOrder = [fr.pageName for fr in parameters.gridFrames.values()]
+    currentSelection = sorted(list(parameters.currentSelection))
+    updatedOrder = [i for i in range(len(parameters.gridFrames.keys())) if i not in currentSelection]
+
+    # Unhighlight selected
+    for fr in parameters.currentSelection:
+        parameters.gridFrames[fr].unhighlight()
+        parameters.currentSelection = set([])
+
+    # Remove redunted frames
+    newTotalFrames = len(parameters.gridFrames.keys())-numberOfDeletes
+    deleteList = [i for i in parameters.gridFrames.keys() if i > newTotalFrames-1]
+    parameters.frameNumber = newTotalFrames
+    for i in deleteList:
+        parameters.gridFrames[i].deleteSelf()
+        del parameters.gridFrames[i]
+
+    # Update all pages
+    for i, n in enumerate(updatedOrder):
+        parameters.gridFrames[i].updateLabel(currentPageOrder[n])
+
+    resizeGrid(True)
+    return
