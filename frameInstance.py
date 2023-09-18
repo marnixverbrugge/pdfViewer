@@ -17,7 +17,7 @@ import rootWindow as rW
 
 class ImageFrame:
     """ Creates a frame to include tkinter label """
-    def __init__(self):
+    def __init__(self, labelAll=False):
         """Initial function of the ImageFrame isntance"""
         # General assignment
         self.row = parameters.row
@@ -25,6 +25,7 @@ class ImageFrame:
         self.name = parameters.frameNumber
         self.pageName = None
         self.selectHighlight = False
+        self.labelAll = labelAll
         self.createFrame()
 
         # Update general parameters
@@ -66,8 +67,11 @@ class ImageFrame:
         """ Add pdf and page number to the frame """
         splitName = self.pageName[16:].split('_')
         referencePDFName = splitName[0]
-        pageNumber = int(splitName[1][5:-4])
-        self.detailLabel = Label(self.fr, text='%s_p %s'%(referencePDFName, pageNumber), bg='white').grid(row=1,padx=2, pady=2)
+        if self.labelAll:
+            self.detailLabel = Label(self.fr, text='%s_All'%(referencePDFName), bg='white').grid(row=1,padx=2, pady=2)
+        else:
+            pageNumber = int(splitName[1][5:-4])
+            self.detailLabel = Label(self.fr, text='%s_p %s'%(referencePDFName, pageNumber), bg='white').grid(row=1,padx=2, pady=2)
         return
 
     def updatePageDetails(self):
@@ -89,6 +93,12 @@ class ImageFrame:
     def updateLabel(self, pageName):
         """ Update the existing label by the new pageName"""
         self.pageName = pageName
+        # Update labelAll
+        if pageName[-8:] == '_All.png':
+            self.labelAll = True
+        else:
+            self.labelAll = False
+
         # Update frame with page image
         original = Image.open('%s\%s'%(os.getcwd(),pageName))
         h, w = parameters.dictImagesSizes[parameters.imagesSize]
@@ -227,13 +237,3 @@ class ImageFrame:
         self.fr.destroy()
         return
         
-
-
-    # def finishSelectionProcess(self, msg):
-    #     """ Function to clear parameters after the selection process is finished """
-    #     rW.updateStatusBar(msg)
-    #     # self.unhighlightAll()
-    #     parameters.currentAction = None
-    #     parameters.currentSelection = set([])
-    #     parameters.selectionDone = False
-    #     return

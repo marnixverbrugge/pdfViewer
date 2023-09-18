@@ -89,6 +89,7 @@ menubar = Menu(root)
 # File 
 fileMenu = Menu(menubar, tearoff=0)
 fileMenu.add_command(label='Open pdf', command=ops.openPDF)
+fileMenu.add_command(label='Open pdf as one', command=ops.openPDFasOne)
 fileMenu.add_command(label='Save as', command=ops.saveAs)
 fileMenu.add_separator()
 fileMenu.add_command(label='Quit', command=root.quit)
@@ -128,8 +129,10 @@ topFunctionsFrame.grid(row=0, column=0, columnspan=2, sticky='nswe')
 
 buttonOpen = Button(topFunctionsFrame, text='open', command=ops.openPDF)
 buttonOpen.grid(row=0, column=0, padx=(3,0))
+buttonOpen = Button(topFunctionsFrame, text='open as one', command=ops.openPDFasOne)
+buttonOpen.grid(row=0, column=1, padx=(1,0))
 buttonSave = Button(topFunctionsFrame, text='save as', command=ops.saveAs)
-buttonSave.grid(row=0, column=1, padx=(1,0))
+buttonSave.grid(row=0, column=2, padx=(1,0))
 
 
 ###
@@ -184,7 +187,6 @@ class AutoGrid(Frame):
     def regrid(self, event):
         ops.resizeGrid()
         return
-
 
 
 def dragBarClick(event):
@@ -370,7 +372,7 @@ def unhighlightAll():
     return
 
 def enterMouse(event):
-    """ Link mouse button as enter key """
+    """ Link mouse button to enter key """
     keyRelease(13)
     return
 

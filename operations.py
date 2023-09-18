@@ -10,6 +10,8 @@ import shutil
 import pypdfium2 as pdfium
 from pypdf import PdfMerger
 import datetime
+from PIL import ImageDraw
+from PIL import ImageFont
 
 # Custom imports
 import parameters
@@ -65,10 +67,17 @@ def getSaveAsFileName():
     return fileName
 
 
-def saveImage(pdf, pageNumber, pageName):
+def saveImage(pdf, pageNumber, pageName, labelAll=False):
     """Save pdf page as image"""
     page = pdf.get_page(pageNumber)
     pil_image = page.render().to_pil()
+
+    # Add Text to an image
+    if labelAll:
+        I1 = ImageDraw.Draw(pil_image)
+        font = ImageFont.truetype("arial.ttf", 150)
+        I1.text((10, 10), "A", fill=(255, 0, 0), font=font)
+
     pil_image.save((pageName))
     
     return
@@ -151,6 +160,44 @@ def openPDF():
 
     return
 
+
+def openPDFasOne():
+    """Main function to open a pdf and show the first pages as image"""
+    # Interupt any active functions
+    rW.keyRelease(27)
+    
+    # UGLY WAY TO IMPORT FRAME INSTANCE
+    import frameInstance
+    
+    # Open import gui
+    fileName = getOpenFileName()
+    if not fileName: return
+
+    # Get new pdf featers
+    pdfName = 'PDF-%s'%parameters.pdfNumber
+    pdf = pdfium.PdfDocument(fileName)
+    numberOfPages = len(pdf)
+
+    # Update general parameters
+    parameters.pdfNumber += 1
+    parameters.pdfNames[pdfName] = fileName
+
+    # Create page
+    pageName = 'imageFolder\%s_All.png' %(pdfName)
+    saveImage(pdf, 0, pageName, True)
+
+    # Create frame to visualize page image
+    fr = frameInstance.ImageFrame(labelAll=True)
+    fr.createLabel(pageName)
+    parameters.gridFrames[fr.name] = fr
+    updateRowsAndColumns()
+    
+    # Update grid and statusbar
+    resizeGrid(True)
+    rW.updateStatusBar('Imported as one -- %s'%fileName.split('/')[-1])
+
+    return
+
     
 # Save pdf 
 def saveAs():
@@ -162,12 +209,16 @@ def saveAs():
     for frameNumber in sortedFrameNumbers:
         fr = parameters.gridFrames[frameNumber]
 
-        # Get pdf name and number
         splitName = fr.pageName[12:].split('_')
         referencePDFName = splitName[0]
-        pageNumber = int(splitName[1][5:-4])
         pdfName = parameters.pdfNames[referencePDFName]
-        newPDF.append(pdfName, pages=(pageNumber-1, pageNumber))
+        
+        # Get pdf name and number
+        if fr.labelAll:
+            newPDF.append(pdfName)
+        else:
+            pageNumber = int(splitName[1][5:-4])
+            newPDF.append(pdfName, pages=(pageNumber-1, pageNumber))
 
     newPDF.write(newFileName.name)
     newPDF.close()
