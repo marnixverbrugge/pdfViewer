@@ -77,14 +77,22 @@ class ImageFrame:
     def updatePageDetails(self):
         """ Update frame and label """
         self.updateFrameSize()
-        if parameters.showPageDetails: self.addDetailLabel()
+        
+        if parameters.showPageDetails: 
+            self.addDetailLabel()
+
         return
 
     def updateFrameSize(self):
         """ Update frame size """
         self.size = parameters.imagesSize
         h, w = parameters.dictImagesSizes[parameters.imagesSize]
-        if parameters.showPageDetails: h+=25
+        
+        # Create label space
+        if parameters.showPageDetails:
+            h+=25
+        
+        self.fr.grid_propagate(0)
         self.fr.configure(height=h, width=w)
         self.updateLabel(self.pageName)
         
@@ -93,6 +101,7 @@ class ImageFrame:
     def updateLabel(self, pageName):
         """ Update the existing label by the new pageName"""
         self.pageName = pageName
+        
         # Update labelAll
         if pageName[-8:] == '_All.png':
             self.labelAll = True
@@ -106,7 +115,10 @@ class ImageFrame:
         img = ImageTk.PhotoImage(resized)
         self.label.configure(image=img)
         self.label.image=img
-        if parameters.showPageDetails: self.addDetailLabel()
+        
+        if parameters.showPageDetails: 
+            self.addDetailLabel()
+        
         return
     
 
