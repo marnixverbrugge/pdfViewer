@@ -46,7 +46,32 @@ def unhighlightButtonAll():
     buttonFunction3.configure(relief='raised')
     return
 
+def setNoneFunction():
+    keyRelease(27)
+    return
 
+def clearAllFunction():
+    keyRelease(27)
+
+    # Delete frames
+    allFrameNames = [i for i in parameters.gridFrames.keys()]
+    for i in allFrameNames:
+        parameters.gridFrames[i].deleteSelf()
+        del parameters.gridFrames[i]
+    
+    # Reset parameters
+    parameters.pdfNumber = 1
+    parameters.frameNumber = 0
+    parameters.gridFrames = {}
+    parameters.pdfNames = {}
+    parameters.row = 0
+    parameters.column = 0
+    parameters.numberOfColumns = 1
+
+    ops.createImageFolder()
+    clearSideMenu()
+    updateStatusBar("Cleared all")
+    return
 
 ###
 ## ROOT
@@ -153,12 +178,14 @@ functionMenu = Menu(menubar, tearoff=0)
 functionMenu.add_command(label='Swap pages', command=swapFunction)
 functionMenu.add_command(label='Insert selection', command=insertFunction)
 functionMenu.add_command(label='Delete pages', command=deleteFunction)
+functionMenu.add_command(label='None', command=setNoneFunction)
+functionMenu.add_command(label='Clear all', command=clearAllFunction)
 menubar.add_cascade(label='Functions', menu=functionMenu)
 
 
 # Help
 helpMenu = Menu(menubar, tearoff=0)
-helpMenu.add_command(label='Manual', command=lambda: updateStatusBar('Help - Open manuel'))
+helpMenu.add_command(label='Manual', command=lambda: updateStatusBar('Help - Open manual'))
 menubar.add_cascade(label='Help', menu=helpMenu)
 
 root.config(menu=menubar)
@@ -248,6 +275,12 @@ def dragBarMotion(event):
         sideMenuFrame.configure(width=width)
     return
 
+def clearSideMenu():
+    for widgets in sideMenuFrame.winfo_children():
+            widgets.destroy()
+    titleSideMenu = Label(sideMenuFrame, text='Current Files', font='Helvetica 12 bold')
+    titleSideMenu.grid(row=0, column=0, pady=(50,0), columnspan=2, sticky='w')
+    return
 
 centerFrame = Frame(root)
 centerFrame.grid(row=1, column=0, sticky='nswe')
@@ -261,7 +294,7 @@ sideMenuFrame = Frame(centerFrame, width=300, highlightbackground='black', highl
 sideMenuFrame.grid(row=0, column=0, sticky='nswe')
 sideMenuFrame.grid_propagate(0)
 titleSideMenu = Label(sideMenuFrame, text='Current Files', font='Helvetica 12 bold')
-titleSideMenu.grid(row=0, column=0, pady=(50,0), columnspan=2)
+titleSideMenu.grid(row=0, column=0, pady=(50,0), columnspan=2, sticky='w')
 
 
 # Drag bar
@@ -286,6 +319,9 @@ imageFrame = imageCanvas.interior
 leftFunctionsFrame = Frame(root)
 leftFunctionsFrame.grid(row=1, column=1, sticky='nswe')
 leftFunctionsFrame.grid_columnconfigure(0, weight=0)
+leftFunctionsFrame.grid_rowconfigure(5, weight=1)
+leftFunctionsFrame.grid_rowconfigure(6, weight=0)
+
 
 title = Label(leftFunctionsFrame, text='Functions', font='Helvetica 9 bold')
 title.grid(row=0, column=0, pady=1, sticky='nswe')
@@ -295,6 +331,11 @@ buttonFunction2 = Button(leftFunctionsFrame, text='Insert', command=insertFuncti
 buttonFunction2.grid(row=2, column=0, pady=(1,0), sticky='nswe')
 buttonFunction3 = Button(leftFunctionsFrame, text='Delete', command=deleteFunction)
 buttonFunction3.grid(row=3, column=0, pady=(1,0), sticky='nswe')
+buttonFunction4 = Button(leftFunctionsFrame, text='None', command=setNoneFunction)
+buttonFunction4.grid(row=4, column=0, pady=(1,0), sticky='nswe')
+space= Label(leftFunctionsFrame, text='').grid(row=5, column=0, sticky='nswe')
+buttonFunction5 = Button(leftFunctionsFrame, text='Clear All', command=clearAllFunction)
+buttonFunction5.grid(row=6, column=0, pady=(1,0), sticky='nswe')
 
 
 ###
