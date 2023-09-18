@@ -259,6 +259,10 @@ centerFrame.grid_rowconfigure(0, weight=1)
 # Side menu
 sideMenuFrame = Frame(centerFrame, width=300, highlightbackground='black', highlightthickness=1)
 sideMenuFrame.grid(row=0, column=0, sticky='nswe')
+sideMenuFrame.grid_propagate(0)
+titleSideMenu = Label(sideMenuFrame, text='Current Files', font='Helvetica 12 bold')
+titleSideMenu.grid(row=0, column=0, pady=(50,0), columnspan=2)
+
 
 # Drag bar
 dragBarFrame = Frame(centerFrame, bg='grey', width=7)

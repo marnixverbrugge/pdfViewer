@@ -123,6 +123,14 @@ def resizeGrid(skipColumnCheck=False):
 ## Button functions
 ###
 
+def addFileToList(pdfName):
+    """ Function to print the number and name of an imported pdf file"""
+    pdfNumber = parameters.pdfNumber
+    Label(rW.sideMenuFrame, text='%s - '%(str(pdfNumber))).grid(row=pdfNumber, column=0)
+    newName = Label(rW.sideMenuFrame, text='%s'%(pdfName))
+    newName.grid(row=pdfNumber, column=1)
+    return
+
 def openPDF():
     """Main function to open a pdf and show the pages as images in individual frames"""
     # Interupt any active functions
@@ -134,6 +142,7 @@ def openPDF():
     # Open import gui
     fileName = getOpenFileName()
     if not fileName: return
+    addFileToList(fileName.split('/')[-1])
 
     # Get new pdf featers
     pdfName = 'PDF-%s'%parameters.pdfNumber
@@ -172,6 +181,7 @@ def openPDFasOne():
     # Open import gui
     fileName = getOpenFileName()
     if not fileName: return
+    addFileToList(fileName.split('/')[-1])
 
     # Get new pdf featers
     pdfName = 'PDF-%s'%parameters.pdfNumber
