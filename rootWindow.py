@@ -14,6 +14,41 @@ import operations as ops
 import parameters
 
 ###
+## FUNCTIONS BUTTONS
+###
+
+def swapFunction():
+    highlightButton(buttonFunction1)
+    parameters.currentAction = 'swap'
+    updateStatusBar('Select page to swap')
+    return
+
+def deleteFunction():
+    highlightButton(buttonFunction3)
+    parameters.currentAction = 'delete'
+    updateStatusBar('Select pages - press Enter to delete')
+    return
+
+def insertFunction():
+    highlightButton(buttonFunction2)
+    parameters.currentAction = 'insert'
+    updateStatusBar('Select pages to insert - press Enter to continue')
+    return
+
+def highlightButton(button):
+    unhighlightButtonAll()
+    button.configure(relief='sunken')
+    return
+
+def unhighlightButtonAll():
+    buttonFunction1.configure(relief='raised')
+    buttonFunction2.configure(relief='raised')
+    buttonFunction3.configure(relief='raised')
+    return
+
+
+
+###
 ## ROOT
 ###
 
@@ -111,6 +146,14 @@ pageSizeMenu.add_checkbutton(label='Large', onvalue=1, offvalue=0, variable=page
 showPageDetails = BooleanVar()
 viewMenu.add_checkbutton(label='Show page details', onvalue=1, offvalue=0, variable=showPageDetails, command=showPageDetailsClick)
 menubar.add_cascade(label='View', menu=viewMenu)
+
+
+# Functions
+functionMenu = Menu(menubar, tearoff=0)
+functionMenu.add_command(label='Swap pages', command=swapFunction)
+functionMenu.add_command(label='Insert selection', command=insertFunction)
+functionMenu.add_command(label='Delete pages', command=deleteFunction)
+menubar.add_cascade(label='Functions', menu=functionMenu)
 
 
 # Help
@@ -236,45 +279,18 @@ imageFrame = imageCanvas.interior
 # Right functions
 ###
 
-def swapFunction():
-    highlightButton(buttonFunction1)
-    parameters.currentAction = 'swap'
-    updateStatusBar('Select page to swap')
-    return
-
-def deleteFunction():
-    highlightButton(buttonFunction3)
-    parameters.currentAction = 'delete'
-    updateStatusBar('Select pages - press Enter to delete')
-    return
-
-def insertFunction():
-    highlightButton(buttonFunction2)
-    parameters.currentAction = 'insert'
-    updateStatusBar('Select pages to insert - press Enter to continue')
-    return
-
-def highlightButton(button):
-    unhighlightButtonAll()
-    button.configure(relief='sunken')
-    return
-
-def unhighlightButtonAll():
-    buttonFunction1.configure(relief='raised')
-    buttonFunction2.configure(relief='raised')
-    buttonFunction3.configure(relief='raised')
-    return
-
-leftFunctionsFrame = Frame(root, width=25)
+leftFunctionsFrame = Frame(root)
 leftFunctionsFrame.grid(row=1, column=1, sticky='nswe')
 leftFunctionsFrame.grid_columnconfigure(0, weight=0)
 
-buttonFunction1 = Button(leftFunctionsFrame, text='1', width=2, command=swapFunction)
-buttonFunction1.grid(row=0, column=0, pady=(1,0), sticky='nswe')
-buttonFunction2 = Button(leftFunctionsFrame, text='2', width=2, command=insertFunction)
-buttonFunction2.grid(row=1, column=0, pady=(1,0), sticky='nswe')
-buttonFunction3 = Button(leftFunctionsFrame, text='D', width=2, command=deleteFunction)
-buttonFunction3.grid(row=2, column=0, pady=(1,0), sticky='nswe')
+title = Label(leftFunctionsFrame, text='Functions', font='Helvetica 9 bold')
+title.grid(row=0, column=0, pady=1, sticky='nswe')
+buttonFunction1 = Button(leftFunctionsFrame, text='Swap', width=10, command=swapFunction)
+buttonFunction1.grid(row=1, column=0, pady=(1,0), sticky='nswe')
+buttonFunction2 = Button(leftFunctionsFrame, text='Insert', command=insertFunction)
+buttonFunction2.grid(row=2, column=0, pady=(1,0), sticky='nswe')
+buttonFunction3 = Button(leftFunctionsFrame, text='Delete', command=deleteFunction)
+buttonFunction3.grid(row=3, column=0, pady=(1,0), sticky='nswe')
 
 
 ###

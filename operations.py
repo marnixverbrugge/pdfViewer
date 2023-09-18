@@ -202,6 +202,9 @@ def openPDFasOne():
 # Save pdf 
 def saveAs():
     """Function to save the new created pdf"""
+    # Interupt any active functions
+    rW.keyRelease(27)
+
     newFileName = getSaveAsFileName()
     sortedFrameNumbers = sorted(parameters.gridFrames.keys())
     
