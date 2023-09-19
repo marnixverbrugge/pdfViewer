@@ -1,5 +1,11 @@
 """
 Module containing the ImageFrame class
+
+
+The object creates tkinter frame and labels. Mouse functions are 
+binded to the frame allowing selection and highlighting for the 
+functions swap, insert and delete.
+
 """
 
 # General imports
@@ -34,8 +40,15 @@ class ImageFrame:
 
     def createFrame(self):
         """ Create tkinter frame """
+        
+        # Get image size
         h, w = parameters.dictImagesSizes[parameters.imagesSize]
-        if parameters.showPageDetails: h+=25
+        
+        # Update frame hide to include page description
+        if parameters.showPageDetails: 
+            h+=25
+
+        # Create and grid frame
         self.fr = Frame(rW.imageFrame, background='white')
         self.fr.configure(height=h, width=w)
         self.fr.grid_propagate(0)
@@ -47,6 +60,7 @@ class ImageFrame:
     def createLabel(self, pageName):
         """ Create the initial image label to frame """
         self.pageName = pageName
+
         # Update frame with page image
         original = Image.open('%s\%s'%(os.getcwd(),pageName))
         h, w = parameters.dictImagesSizes[parameters.imagesSize]
@@ -55,24 +69,31 @@ class ImageFrame:
         self.label = Label(self.fr, image = img)
         self.label.image=img
         
+        # Add mouse binding to frame
         self.label.bind("<Button-1>", self.onClick)
         self.label.grid(padx=2, pady=2)
 
-        # Check for details label
-        if parameters.showPageDetails: self.addDetailLabel()
+        # Check if page description details are required
+        if parameters.showPageDetails: 
+            self.addDetailLabel()
 
         return
+
 
     def addDetailLabel(self):
         """ Add pdf and page number to the frame """
         splitName = self.pageName[16:].split('_')
         referencePDFName = splitName[0]
+
+        # Create description label text
         if self.labelAll:
             self.detailLabel = Label(self.fr, text='%s_All'%(referencePDFName), bg='white').grid(row=1,padx=2, pady=2)
         else:
             pageNumber = int(splitName[1][5:-4])
             self.detailLabel = Label(self.fr, text='%s_p %s'%(referencePDFName, pageNumber), bg='white').grid(row=1,padx=2, pady=2)
+       
         return
+
 
     def updatePageDetails(self):
         """ Update frame and label """
@@ -82,6 +103,7 @@ class ImageFrame:
             self.addDetailLabel()
 
         return
+
 
     def updateFrameSize(self):
         """ Update frame size """
@@ -97,6 +119,7 @@ class ImageFrame:
         self.updateLabel(self.pageName)
         
         return
+
 
     def updateLabel(self, pageName):
         """ Update the existing label by the new pageName"""
@@ -144,7 +167,7 @@ class ImageFrame:
 
 
     def highlight(self, color='red'):
-        """ Highlight frame with red color """
+        """ Highlight frame with color """
         self.fr.configure(background=color)
         self.selectHighlight = True
         parameters.frameHighlighted = self.name
@@ -159,6 +182,7 @@ class ImageFrame:
         parameters.frameHighlighted = None
         return
 
+
     def unhighlightAll(self):
         """ Unhighlight all frames """
         for fr in parameters.currentSelection:
@@ -169,6 +193,7 @@ class ImageFrame:
 
     def swapPages(self):
         """ Swap pages function active """
+        
         # Switch positions
         if parameters.frameHighlighted != None:
             self.changePosition()
@@ -176,7 +201,9 @@ class ImageFrame:
         # Highlight
         else:
             self.highlight()
+
         return
+
 
     def changePosition(self):
         """ Function to switch pdf pages """
@@ -195,6 +222,7 @@ class ImageFrame:
 
     def insertPages(self):
         """ Function to insert selected pages to new position """
+        
         # Check if selection process is done
         if parameters.selectionDone == False: 
             self.multiSelect()
@@ -219,33 +247,43 @@ class ImageFrame:
 
     def multiSelect(self):
         """ Function to select multiple pages """
+
+        # Shift pressed and self not in currentSelection -> select
         if parameters.shiftPressed and self.name not in parameters.currentSelection:
             parameters.currentSelection.add(self.name)
             self.highlight()
         
+        # Shift pressed and self in currentSelection -> unselect
         elif parameters.shiftPressed and self.name in parameters.currentSelection:
             parameters.currentSelection.remove(self.name)
             self.unhighlight()
 
+        # Shift not pressed and self in currentSelection -> unselect
         elif parameters.shiftPressed == False and self.name in parameters.currentSelection:
             self.unhighlightAll()
             parameters.currentSelection = set([])
 
+        # Shift not pressed and self not in currentSelection -> new select
         else:
             self.unhighlightAll()
             parameters.currentSelection = set([self.name])
             self.highlight()
+
         return
 
 
     def deletePages(self):
         """ Delete the selected pages """
         self.multiSelect()
+        
+        return
+
 
     def deleteSelf(self):
         """ Remove the frame from grid """
         for widgets in self.fr.winfo_children():
             widgets.destroy()
         self.fr.destroy()
+
         return
         

@@ -13,8 +13,75 @@ import ctypes
 import operations as ops
 import parameters
 
+
+####################################################################
+##                             CLASSES                            ##
+####################################################################
+
+class VerticalScrolledFrame(Frame):
+    """ Class to create a canvas including a frame and scrollbar """
+    def __init__(self, parent, *args, **kw):
+        Frame.__init__(self, parent, *args, **kw)
+
+        # Create a canvas object and a vertical scrollbar for scrolling it.
+        vscrollbar = Scrollbar(self, orient=VERTICAL)
+        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
+        canvas = Canvas(self, highlightbackground='black', highlightthickness=1, background='white',
+                           yscrollcommand=vscrollbar.set)
+        canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
+        vscrollbar.config(command=canvas.yview)
+
+        # Reset the view
+        canvas.xview_moveto(0)
+        canvas.yview_moveto(0)
+
+        # Create a frame inside the canvas which will be scrolled with it.
+        self.interior = interior = AutoGrid(canvas, bg='white')
+        interior_id = canvas.create_window(0, 0, window=interior, anchor=NW)
+
+
+        # Track changes to the canvas and frame width and sync them,
+        # also updating the scrollbar.
+        def _configure_interior(event):
+            # Update the scrollbars to match the size of the inner frame.
+            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+            canvas.config(scrollregion="0 0 %s %s" % size)
+            interior.regrid(None)
+        interior.bind('<Configure>', _configure_interior)
+
+        def _configure_canvas(event):
+            if interior.winfo_reqwidth() != canvas.winfo_width():
+                # Update the inner frame's width to fill the canvas.
+                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+            interior.regrid(None)    
+        canvas.bind('<Configure>', _configure_canvas)
+
+        # Bind mouse wheel
+        self.canvas = canvas
+        self.canvas.bind_all('<MouseWheel>', self.onMouseWheel)
+
+    def onMouseWheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+
+class AutoGrid(Frame):
+    """ Class to auto scale the image frames """
+    def __init__(self, master=None, **kwargs):
+        Frame.__init__(self, master, **kwargs)
+        self.columns = None
+        self.bind('<Configure>', self.regrid)
+
+    def regrid(self, event):
+        ops.resizeGrid()
+        return
+
+
+####################################################################
+##                            FUNCTIONS                           ##
+####################################################################
+
 ###
-## FUNCTIONS BUTTONS
+## Buttons
 ###
 
 def swapFunction():
@@ -73,32 +140,13 @@ def clearAllFunction():
     updateStatusBar("Cleared all")
     return
 
-###
-## ROOT
-###
-
-# Create main window
-root = Tk()
-root.state('zoomed')
-root.minsize(height=400, width=600)
-root.title('PDF page merger')
-
 
 ###
-# Root Configuration
+## Menubar
 ###
-root.grid_columnconfigure(0, weight=1)
-root.grid_columnconfigure(1, weight=0)
 
-root.grid_rowconfigure(0, weight=0)
-root.grid_rowconfigure(1, weight=1)
-root.grid_rowconfigure(2, weight=0)
-
-
-###
-# Menu bar
-###
 def pageSizeMenuClick(item, tabNumber):
+    """ Function to switch page size via menubar """
     # Update GUI menu
     pageSizeSmall.set(0) 
     pageSizeMedium.set(0) 
@@ -113,6 +161,7 @@ def pageSizeMenuClick(item, tabNumber):
     return
 
 def showPageDetailsClick():
+    """ Function to visualize the page details label """
     # Update GUI menu
     keepOpen('v')
     # Operate detail function
@@ -121,6 +170,7 @@ def showPageDetailsClick():
     return
 
 def keepOpen(key='', subTab=None):
+    """ Function to keep open the current menubar tab """
     keybd_event = ctypes.windll.user32.keybd_event
     alt_key = 0x12
     key_up = 0x0002
@@ -141,15 +191,153 @@ def keepOpen(key='', subTab=None):
         for i in range(subTab-1): 
             keybd_event(40, 0, 0, 0)
             keybd_event(40, 0, key_up, 0)    
+
     return
 
 
+###
+## Left side bar
+###
+
+def dragBarClick(event):
+    event.widget.mouseX = event.x
+    return
+
+def dragBarRelease(event):
+    event.widget.mouseX = 0
+    return
+
+def dragBarMotion(event):
+    if event.widget.mouseX != 0:
+        width = sideMenuFrame.winfo_width() + event.x - event.widget.mouseX
+        centerFrame.grid_propagate(False)
+        sideMenuFrame.configure(width=width)
+    return
+
+def clearSideMenu():
+    for widgets in sideMenuFrame.winfo_children():
+            widgets.destroy()
+    titleSideMenu = Label(sideMenuFrame, text='Current Files', font='Helvetica 12 bold')
+    titleSideMenu.grid(row=0, column=0, pady=(50,0), columnspan=2, sticky='w')
+    return
+
+###
+# Statusbar
+###
+
+def updateStatusBar(text):
+    statusLabel.configure(text=text)
+    statusLabel.update()
+    return
+
+
+###
+## Keys
+###
+
+def keyPressed(keyCode):
+    """Function to update the parameters based on key input"""
+    # Left shift
+    if keyCode == 16: 
+        parameters.shiftPressed = True
+    return
+
+def keyRelease(keyCode):
+    """Function to update the parameters based on key input"""
+    # print(keyCode)
+    # Left shift
+    if keyCode == 16: parameters.shiftPressed = False
+    
+    # ESC - Unhighlight current selection
+    elif keyCode == 27:
+        ops.unhighlightAll()
+        unhighlightButtonAll()
+        parameters.currentAction = None
+        parameters.currentSelection = set([])
+        parameters.selectionDone = False
+        parameters.secondPageSelection == None
+        updateStatusBar('No function activated')
+        
+    # Enter - Confirm selection
+    elif keyCode == 13:
+        if parameters.currentAction == 'insert':
+            parameters.selectionDone = True
+            if parameters.currentAction == 'insert' and parameters.secondPageSelection==None: 
+                updateStatusBar('Select page to insert red pages in front')
+            elif parameters.currentAction == 'insert'and parameters.secondPageSelection!=None:
+                ops.insertPages()
+                updateStatusBar('Pages are inserted - Select new pages to insert - Press enter to continue or esc to stop')
+                ops.unhighlightAll()
+                parameters.currentSelection = set([])
+                parameters.secondPageSelection = None
+                parameters.selectionDone = False
+
+        if parameters.currentAction == 'delete':
+            ops.deletePages()
+            updateStatusBar('Pages are deleted - Select new pages to delete - Press enter to continue or esc to stop')
+            parameters.currentSelection = set([])
+            parameters.selectionDone = False
+
+    # Shortcut to functions
+    elif keyCode == 49: # 1 key
+        swapFunction()
+    elif keyCode == 50: # 2 key
+        insertFunction()
+    elif keyCode == 51: # 3 key
+        deleteFunction()
+    elif keyCode == 79: # o key
+        ops.openPDF()
+    elif keyCode == 83: # s key
+        ops.saveAs()
+
+
+    return
+
+def enterMouse(event):
+    """ Link mouse button to enter key """
+    keyRelease(13)
+    return
+
+
+
+####################################################################
+##                              ROOT                              ##
+####################################################################
+
+###
+# Create main window
+###
+root = Tk()
+root.state('zoomed')
+root.minsize(height=400, width=600)
+root.title('PDF page merger')
+
+# Binding to root
+root.bind("<KeyPress>", lambda e: keyPressed(e.keycode))
+root.bind("<KeyRelease>", lambda e: keyRelease(e.keycode))
+root.bind("<Button-2>", enterMouse)
+
+
+###
+# Root Configuration
+###
+root.grid_columnconfigure(0, weight=1)
+root.grid_columnconfigure(1, weight=0)
+
+root.grid_rowconfigure(0, weight=0)
+root.grid_rowconfigure(1, weight=1)
+root.grid_rowconfigure(2, weight=0)
+
+
+###
+# Menu bar
+###
 menubar = Menu(root)
 
 # File 
 fileMenu = Menu(menubar, tearoff=0)
 fileMenu.add_command(label='Open pdf', command=ops.openPDF)
-fileMenu.add_command(label='Open pdf as one', command=ops.openPDFasOne)
+fileMenu.add_command(label='Open pdf as one', command= lambda: ops.openPDF(asOne=True))
 fileMenu.add_command(label='Save as', command=ops.saveAs)
 fileMenu.add_separator()
 fileMenu.add_command(label='Quit', command=root.quit)
@@ -172,7 +360,6 @@ showPageDetails = BooleanVar()
 viewMenu.add_checkbutton(label='Show page details', onvalue=1, offvalue=0, variable=showPageDetails, command=showPageDetailsClick)
 menubar.add_cascade(label='View', menu=viewMenu)
 
-
 # Functions
 functionMenu = Menu(menubar, tearoff=0)
 functionMenu.add_command(label='Swap pages', command=swapFunction)
@@ -181,7 +368,6 @@ functionMenu.add_command(label='Delete pages', command=deleteFunction)
 functionMenu.add_command(label='None', command=setNoneFunction)
 functionMenu.add_command(label='Clear all', command=clearAllFunction)
 menubar.add_cascade(label='Functions', menu=functionMenu)
-
 
 # Help
 helpMenu = Menu(menubar, tearoff=0)
@@ -199,7 +385,7 @@ topFunctionsFrame.grid(row=0, column=0, columnspan=2, sticky='nswe')
 
 buttonOpen = Button(topFunctionsFrame, text='open', command=ops.openPDF)
 buttonOpen.grid(row=0, column=0, padx=(3,0))
-buttonOpen = Button(topFunctionsFrame, text='open as one', command=ops.openPDFasOne)
+buttonOpen = Button(topFunctionsFrame, text='open as one', command= lambda: ops.openPDF(asOne=True))
 buttonOpen.grid(row=0, column=1, padx=(1,0))
 buttonSave = Button(topFunctionsFrame, text='save as', command=ops.saveAs)
 buttonSave.grid(row=0, column=2, padx=(1,0))
@@ -208,87 +394,6 @@ buttonSave.grid(row=0, column=2, padx=(1,0))
 ###
 # Center frame
 ###
-
-class VerticalScrolledFrame(Frame):
-    def __init__(self, parent, *args, **kw):
-        Frame.__init__(self, parent, *args, **kw)
-
-        # Create a canvas object and a vertical scrollbar for scrolling it.
-        vscrollbar = Scrollbar(self, orient=VERTICAL)
-        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
-        canvas = Canvas(self, highlightbackground='black', highlightthickness=1, background='white',
-                           yscrollcommand=vscrollbar.set)
-        canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
-        vscrollbar.config(command=canvas.yview)
-
-        # Reset the view
-        canvas.xview_moveto(0)
-        canvas.yview_moveto(0)
-
-        # Create a frame inside the canvas which will be scrolled with it.
-        self.interior = interior = AutoGrid(canvas, bg='white')
-        interior_id = canvas.create_window(0, 0, window=interior, anchor=NW)
-
-
-        # Track changes to the canvas and frame width and sync them,
-        # also updating the scrollbar.
-        def _configure_interior(event):
-            # Update the scrollbars to match the size of the inner frame.
-            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
-            canvas.config(scrollregion="0 0 %s %s" % size)
-            interior.regrid(None)
-        interior.bind('<Configure>', _configure_interior)
-
-        def _configure_canvas(event):
-            if interior.winfo_reqwidth() != canvas.winfo_width():
-                # Update the inner frame's width to fill the canvas.
-                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
-            interior.regrid(None)    
-        canvas.bind('<Configure>', _configure_canvas)
-
-        # Bind mouse wheel
-        self.canvas = canvas
-        self.canvas.bind_all('<MouseWheel>', self.onMouseWheel)
-
-    def onMouseWheel(self, event):
-        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-
-
-class AutoGrid(Frame):
-    """ Class to auto scale the image frames """
-    def __init__(self, master=None, **kwargs):
-        Frame.__init__(self, master, **kwargs)
-        self.columns = None
-        self.bind('<Configure>', self.regrid)
-
-    def regrid(self, event):
-        ops.resizeGrid()
-        return
-
-
-def dragBarClick(event):
-    event.widget.mouseX = event.x
-    return
-
-
-def dragBarRelease(event):
-    event.widget.mouseX = 0
-    return
-
-def dragBarMotion(event):
-    if event.widget.mouseX != 0:
-        width = sideMenuFrame.winfo_width() + event.x - event.widget.mouseX
-        centerFrame.grid_propagate(False)
-        sideMenuFrame.configure(width=width)
-    return
-
-def clearSideMenu():
-    for widgets in sideMenuFrame.winfo_children():
-            widgets.destroy()
-    titleSideMenu = Label(sideMenuFrame, text='Current Files', font='Helvetica 12 bold')
-    titleSideMenu.grid(row=0, column=0, pady=(50,0), columnspan=2, sticky='w')
-    return
-
 centerFrame = Frame(root)
 centerFrame.grid(row=1, column=0, sticky='nswe')
 centerFrame.grid_columnconfigure(0, weight=0)
@@ -302,7 +407,6 @@ sideMenuFrame.grid(row=0, column=0, sticky='nswe')
 sideMenuFrame.grid_propagate(0)
 titleSideMenu = Label(sideMenuFrame, text='Current Files', font='Helvetica 12 bold')
 titleSideMenu.grid(row=0, column=0, pady=(50,0), columnspan=2, sticky='w')
-
 
 # Drag bar
 dragBarFrame = Frame(centerFrame, bg='grey', width=7)
@@ -322,7 +426,6 @@ imageFrame = imageCanvas.interior
 ###
 # Right functions
 ###
-
 leftFunctionsFrame = Frame(root)
 leftFunctionsFrame.grid(row=1, column=1, sticky='nswe')
 leftFunctionsFrame.grid_columnconfigure(0, weight=0)
@@ -354,103 +457,10 @@ statusBarFrame.grid_columnconfigure(0, weight=1)
 statusLabel = Label(statusBarFrame, text='Welcome', bd=1, relief='sunken', anchor='w')
 statusLabel.grid(row=0, column=0, sticky='nswe')
 
-def updateStatusBar(text):
-    statusLabel.configure(text=text)
-    statusLabel.update()
-    return
 
 
-###
-## KEYS
-###
-
-def keyPressed(keyCode):
-    """Function to update the parameters based on key input"""
-    # Left shift
-    if keyCode == 16: 
-        parameters.shiftPressed = True
-    return
-
-def keyRelease(keyCode):
-    """Function to update the parameters based on key input"""
-    # print(keyCode)
-    # Left shift
-    if keyCode == 16: parameters.shiftPressed = False
-    
-    # ESC - Unhighlight current selection
-    elif keyCode == 27:
-        unhighlightAll()
-        unhighlightButtonAll()
-        parameters.currentAction = None
-        parameters.currentSelection = set([])
-        parameters.selectionDone = False
-        parameters.secondPageSelection == None
-        updateStatusBar('No function activated')
-        
-
-    # Enter - Confirm selection
-    elif keyCode == 13:
-        if parameters.currentAction == 'insert':
-            parameters.selectionDone = True
-            if parameters.currentAction == 'insert' and parameters.secondPageSelection==None: 
-                updateStatusBar('Select page to insert red pages in front')
-            elif parameters.currentAction == 'insert'and parameters.secondPageSelection!=None:
-                ops.insertPages()
-                updateStatusBar('Pages are inserted - Select new pages to insert - Press enter to continue or esc to stop')
-                unhighlightAll()
-                parameters.currentSelection = set([])
-                parameters.secondPageSelection = None
-                parameters.selectionDone = False
-
-        if parameters.currentAction == 'delete':
-            ops.deletePages()
-            updateStatusBar('Pages are deleted - Select new pages to delete - Press enter to continue or esc to stop')
-            parameters.currentSelection = set([])
-            parameters.selectionDone = False
-
-    # Shortcut to functions
-    elif keyCode == 49: # 1 key
-        swapFunction()
-    elif keyCode == 50: # 2 key
-        insertFunction()
-    elif keyCode == 51: # 3 key
-        deleteFunction()
-    elif keyCode == 79: # o key
-        ops.openPDF()
-    elif keyCode == 83: # s key
-        ops.saveAs()
-
-
-    # Print programm information
-    elif keyCode == 73: # i key
-        print('Gridframes: ', parameters.gridFrames.keys())
-        print('CurrentSelection: ', parameters.currentSelection)
-        print('Num columns: ', parameters.numberOfColumns)
-        print('row, column: ', parameters.row, parameters.column)
-    return
-
-
-def unhighlightAll():
-    """ Unhighlight all selected frames """
-    for fr in parameters.currentSelection:
-        parameters.gridFrames[fr].unhighlight()
-    
-    if parameters.secondPageSelection != None:
-        parameters.gridFrames[parameters.secondPageSelection].unhighlight()
-    return
-
-def enterMouse(event):
-    """ Link mouse button to enter key """
-    keyRelease(13)
-    return
-
-root.bind("<KeyPress>", lambda e: keyPressed(e.keycode))
-root.bind("<KeyRelease>", lambda e: keyRelease(e.keycode))
-root.bind("<Button-2>", enterMouse)
-
-
-###
-## RUN
-###
+####################################################################
+##                               RUN                              ##
+####################################################################
 ops.createImageFolder()
 root.mainloop()
