@@ -246,6 +246,13 @@ class VerticalScrolledFrame(Frame):
             interior.regrid(None)    
         canvas.bind('<Configure>', _configure_canvas)
 
+        # Bind mouse wheel
+        self.canvas = canvas
+        self.canvas.bind_all('<MouseWheel>', self.onMouseWheel)
+
+    def onMouseWheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
 
 class AutoGrid(Frame):
     """ Class to auto scale the image frames """

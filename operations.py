@@ -37,18 +37,18 @@ def createImageFolder():
     return
 
 
-def getOpenFileName():
+def getOpenFileNames():
     """Get the path of the selected pdf file"""
-    fileName = filedialog.askopenfilename(initialdir=os.getcwd(),
+    fileNames = filedialog.askopenfilenames(initialdir=os.getcwd(),
                                           title='select pdf file',
                                           filetype = (('PDF File', '.pdf'),
                                                       ('PDF File', '.PDF'),
                                                       ('ALL file', '.txt')))
 
     # Update status bar
-    if fileName: rW.updateStatusBar('Open file...')
+    if fileNames: rW.updateStatusBar('Open files...')
 
-    return fileName
+    return fileNames
 
 
 def getSaveAsFileName():
@@ -128,7 +128,7 @@ def addFileToList(pdfName):
     pdfNumber = parameters.pdfNumber
     Label(rW.sideMenuFrame, text='%s - '%(str(pdfNumber))).grid(row=pdfNumber, column=0)
     newName = Label(rW.sideMenuFrame, text='%s'%(pdfName))
-    newName.grid(row=pdfNumber, column=1)
+    newName.grid(row=pdfNumber, column=1, sticky='w')
     return
 
 def openPDF():
@@ -140,32 +140,34 @@ def openPDF():
     import frameInstance
     
     # Open import gui
-    fileName = getOpenFileName()
-    if not fileName: return
-    addFileToList(fileName.split('/')[-1])
+    fileNames = getOpenFileNames()
+    if not fileNames: return
 
-    # Get new pdf featers
-    pdfName = 'PDF-%s'%parameters.pdfNumber
-    pdf = pdfium.PdfDocument(fileName)
-    numberOfPages = len(pdf)
+    for fileName in fileNames:
+        addFileToList(fileName.split('/')[-1])
 
-    # Update general parameters
-    parameters.pdfNumber += 1
-    parameters.pdfNames[pdfName] = fileName
+        # Get new pdf featers
+        pdfName = 'PDF-%s'%parameters.pdfNumber
+        pdf = pdfium.PdfDocument(fileName)
+        numberOfPages = len(pdf)
 
-    # Create individual pages
-    for pageNumber in range(numberOfPages):
-        # Save page as image
-        pageName = 'imageFolder\%s_page-%s.png' %(pdfName, str(pageNumber+1))
-        saveImage(pdf, pageNumber, pageName)
-        # Create frame to visualize page image
-        fr = frameInstance.ImageFrame()
-        fr.createLabel(pageName)
-        parameters.gridFrames[fr.name] = fr
-        updateRowsAndColumns()
-    
-    resizeGrid(True)
-    rW.updateStatusBar('Imported -- %s'%fileName.split('/')[-1])
+        # Update general parameters
+        parameters.pdfNumber += 1
+        parameters.pdfNames[pdfName] = fileName
+
+        # Create individual pages
+        for pageNumber in range(numberOfPages):
+            # Save page as image
+            pageName = 'imageFolder\%s_page-%s.png' %(pdfName, str(pageNumber+1))
+            saveImage(pdf, pageNumber, pageName)
+            # Create frame to visualize page image
+            fr = frameInstance.ImageFrame()
+            fr.createLabel(pageName)
+            parameters.gridFrames[fr.name] = fr
+            updateRowsAndColumns()
+        
+        resizeGrid(True)
+        rW.updateStatusBar('Imported -- %s'%fileName.split('/')[-1])
 
     return
 
@@ -179,32 +181,34 @@ def openPDFasOne():
     import frameInstance
     
     # Open import gui
-    fileName = getOpenFileName()
-    if not fileName: return
-    addFileToList(fileName.split('/')[-1])
+    fileNames = getOpenFileNames()
+    if not fileNames: return
 
-    # Get new pdf featers
-    pdfName = 'PDF-%s'%parameters.pdfNumber
-    pdf = pdfium.PdfDocument(fileName)
-    numberOfPages = len(pdf)
+    for fileName in fileNames:
+        addFileToList(fileName.split('/')[-1])
 
-    # Update general parameters
-    parameters.pdfNumber += 1
-    parameters.pdfNames[pdfName] = fileName
+        # Get new pdf featers
+        pdfName = 'PDF-%s'%parameters.pdfNumber
+        pdf = pdfium.PdfDocument(fileName)
+        numberOfPages = len(pdf)
 
-    # Create page
-    pageName = 'imageFolder\%s_All.png' %(pdfName)
-    saveImage(pdf, 0, pageName, True)
+        # Update general parameters
+        parameters.pdfNumber += 1
+        parameters.pdfNames[pdfName] = fileName
 
-    # Create frame to visualize page image
-    fr = frameInstance.ImageFrame(labelAll=True)
-    fr.createLabel(pageName)
-    parameters.gridFrames[fr.name] = fr
-    updateRowsAndColumns()
-    
-    # Update grid and statusbar
-    resizeGrid(True)
-    rW.updateStatusBar('Imported as one -- %s'%fileName.split('/')[-1])
+        # Create page
+        pageName = 'imageFolder\%s_All.png' %(pdfName)
+        saveImage(pdf, 0, pageName, True)
+
+        # Create frame to visualize page image
+        fr = frameInstance.ImageFrame(labelAll=True)
+        fr.createLabel(pageName)
+        parameters.gridFrames[fr.name] = fr
+        updateRowsAndColumns()
+        
+        # Update grid and statusbar
+        resizeGrid(True)
+        rW.updateStatusBar('Imported as one -- %s'%fileName.split('/')[-1])
 
     return
 
