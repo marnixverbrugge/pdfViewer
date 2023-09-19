@@ -1,14 +1,17 @@
 # PDF Merger
-Software to merge pdf's and update the page order by page visualization.
+Software to merge pdf's and update the page order.
+
 
 #### Image size
-The programm is designed for A4 pages. It's possible to import other
-types of sizes but the page visualization will always scale to A4.
+The programm is designed for A4 documents. It's possible to import 
+other types of sizes but the page visualization will always scale 
+to A4.
 
 
 #### manualUpdates
 The current tkPDFViewer.py needs to be replaced with the py-file from
 this folder.
+
 
 #### imageFolder
 All pages of an imported pdf are being stored as images in the imageFolder.
