@@ -8,6 +8,7 @@ The button operations are imported from operations.py
 # General imports
 from tkinter import *
 import ctypes
+import os
 
 # Custom imports
 import operations as ops
@@ -194,6 +195,9 @@ def keepOpen(key='', subTab=None):
 
     return
 
+def openManual():
+    os.system('start usermanual.docx')
+    return
 
 ###
 ## Left side bar
@@ -371,7 +375,7 @@ menubar.add_cascade(label='Functions', menu=functionMenu)
 
 # Help
 helpMenu = Menu(menubar, tearoff=0)
-helpMenu.add_command(label='Manual', command=lambda: updateStatusBar('Help - Open manual'))
+helpMenu.add_command(label='Manual', command=openManual)
 menubar.add_cascade(label='Help', menu=helpMenu)
 
 root.config(menu=menubar)
