@@ -1,5 +1,6 @@
 """
 Module containing all system and button functions
+
 """
 
 # General imports
@@ -83,6 +84,10 @@ def saveImage(pdf, pageNumber, pageName, labelAll=False):
     return
 
 
+###
+## GRID FUNCTIONS
+###
+
 def updateRowsAndColumns():
     """ Update parameters row and columns """
     frameWidth = rW.imageFrame.winfo_width()
@@ -120,9 +125,8 @@ def resizeGrid(skipColumnCheck=False):
 
 
 ###
-## Button functions
+## BUTTON FUNCTIONS
 ###
-
 def addFileToList(pdfName):
     """ Function to print the number and name of an imported pdf file"""
     pdfNumber = parameters.pdfNumber
@@ -131,7 +135,7 @@ def addFileToList(pdfName):
     newName.grid(row=pdfNumber, column=1, sticky='w')
     return
 
-def openPDF():
+def openPDF(asOne=False):
     """Main function to open a pdf and show the pages as images in individual frames"""
     # Interupt any active functions
     rW.keyRelease(27)
@@ -155,60 +159,32 @@ def openPDF():
         parameters.pdfNumber += 1
         parameters.pdfNames[pdfName] = fileName
 
-        # Create individual pages
-        for pageNumber in range(numberOfPages):
-            # Save page as image
-            pageName = 'imageFolder\%s_page-%s.png' %(pdfName, str(pageNumber+1))
-            saveImage(pdf, pageNumber, pageName)
+
+        if asOne:
+            # Create page
+            pageName = 'imageFolder\%s_All.png' %(pdfName)
+            saveImage(pdf, 0, pageName, True)
+
             # Create frame to visualize page image
-            fr = frameInstance.ImageFrame()
+            fr = frameInstance.ImageFrame(labelAll=True)
             fr.createLabel(pageName)
             parameters.gridFrames[fr.name] = fr
             updateRowsAndColumns()
+
+        else:
+            # Create individual pages
+            for pageNumber in range(numberOfPages):
+                # Save page as image
+                pageName = 'imageFolder\%s_page-%s.png' %(pdfName, str(pageNumber+1))
+                saveImage(pdf, pageNumber, pageName)
+                # Create frame to visualize page image
+                fr = frameInstance.ImageFrame()
+                fr.createLabel(pageName)
+                parameters.gridFrames[fr.name] = fr
+                updateRowsAndColumns()
         
         resizeGrid(True)
         rW.updateStatusBar('Imported -- %s'%fileName.split('/')[-1])
-
-    return
-
-
-def openPDFasOne():
-    """Main function to open a pdf and show the first pages as image"""
-    # Interupt any active functions
-    rW.keyRelease(27)
-    
-    # UGLY WAY TO IMPORT FRAME INSTANCE
-    import frameInstance
-    
-    # Open import gui
-    fileNames = getOpenFileNames()
-    if not fileNames: return
-
-    for fileName in fileNames:
-        addFileToList(fileName.split('/')[-1])
-
-        # Get new pdf featers
-        pdfName = 'PDF-%s'%parameters.pdfNumber
-        pdf = pdfium.PdfDocument(fileName)
-        numberOfPages = len(pdf)
-
-        # Update general parameters
-        parameters.pdfNumber += 1
-        parameters.pdfNames[pdfName] = fileName
-
-        # Create page
-        pageName = 'imageFolder\%s_All.png' %(pdfName)
-        saveImage(pdf, 0, pageName, True)
-
-        # Create frame to visualize page image
-        fr = frameInstance.ImageFrame(labelAll=True)
-        fr.createLabel(pageName)
-        parameters.gridFrames[fr.name] = fr
-        updateRowsAndColumns()
-        
-        # Update grid and statusbar
-        resizeGrid(True)
-        rW.updateStatusBar('Imported as one -- %s'%fileName.split('/')[-1])
 
     return
 
@@ -251,7 +227,6 @@ def updatePageSize(currentSize='normal'):
     resizeGrid()
     return
 
-
 # Page details
 def updatePageDetails(showPageDetails):
     """Function to update the page size"""
@@ -261,12 +236,9 @@ def updatePageDetails(showPageDetails):
     return
 
 
-
-
 ###
 ## PAGE OPERATIONS
 ###
-
 def insertPages():
     """ Function to change the page order"""
     currentPageOrder = [fr.pageName for fr in parameters.gridFrames.values()]
@@ -321,4 +293,13 @@ def deletePages():
         parameters.gridFrames[i].updateLabel(currentPageOrder[n])
 
     resizeGrid(True)
+    return
+
+def unhighlightAll():
+    """ Unhighlight all selected frames """
+    for fr in parameters.currentSelection:
+        parameters.gridFrames[fr].unhighlight()
+    
+    if parameters.secondPageSelection != None:
+        parameters.gridFrames[parameters.secondPageSelection].unhighlight()
     return
